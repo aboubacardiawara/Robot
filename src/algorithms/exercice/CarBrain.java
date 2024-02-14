@@ -19,7 +19,7 @@ public class CarBrain extends SquareWalkBrain {
 
         // state 1
         if (state == MOVE_STATE && wallDetected()) {
-            state = TURN_STATE;
+            state = RIGHT_TURN_STATE;
             return;
         }
         if (state == MOVE_STATE && !wallDetected()) {
@@ -29,11 +29,11 @@ public class CarBrain extends SquareWalkBrain {
         }
 
         // state 2
-        if (state == TURN_STATE && isSameDirection(getHeading(), oldAngle+(Math.PI/2))) {
+        if (state == RIGHT_TURN_STATE && isSameDirection(getHeading(), oldAngle+(Math.PI/2))) {
             state = MOVE_STATE;
             return;
         }
-        if (state == TURN_STATE && !isSameDirection(getHeading(), oldAngle+(Math.PI/2))) {
+        if (state == RIGHT_TURN_STATE && !isSameDirection(getHeading(), oldAngle+(Math.PI/2))) {
             stepTurn(Parameters.Direction.RIGHT);
             return;
         }

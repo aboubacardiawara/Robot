@@ -6,6 +6,7 @@
  * ******************************************************/
 package characteristics;
 
+import algorithms.exercice.CanvasDimensionCalculatorBrain;
 import algorithms.exercice.SquareWalkBrain;
 
 public class Parameters {
@@ -24,12 +25,12 @@ public class Parameters {
   //---TEAM-A-PARAMETERS---//
   //-----------------------//
   public static final String teamAName = "KD Runners";
-  public static final Class<? extends IBrain>  teamAMainBotBrainClass = SquareWalkBrain.class; //class given by name; is supposed to extends robotsimulator.Brain
+  public static final Class<? extends IBrain>  teamAMainBotBrainClass = CanvasDimensionCalculatorBrain.class; //class given by name; is supposed to extends robotsimulator.Brain
   public static final String teamAMainBotAvatar = "avatars/cyclope.png"; //path relative to location of ant build.xml file
   public static final double teamAMainBotRadius = 50, //1 unit = 1mm, body radius
                              teamAMainBotFrontalDetectionRange = 300, //1 unit = 1mm, range of frontal sensor
                              teamAMainBotFrontalDetectionAngle = 0, //UNUSED AT THE MOMENT, frontal sensor detection angle is suppoed to be absolute
-                             teamAMainBotSpeed = 1, //1 unit = 1mm, distance performed at step movement
+                             teamAMainBotSpeed = 3, //1 unit = 1mm, distance performed at step movement
                              teamAMainBotStepTurnAngle = 0.01*Math.PI, //trigonometric unit, angle performed at step turn action
                              teamAMainBotHealth = 300, //FICTIONAL SIMOVIES
                              teamAMainBot1InitX = 200, //1 unit = 1mm, coordinate of central point
