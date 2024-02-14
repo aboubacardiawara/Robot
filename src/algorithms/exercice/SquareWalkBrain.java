@@ -5,12 +5,13 @@ import robotsimulator.Brain;
 
 import static characteristics.IFrontSensorResult.Types.WALL;
 
-public class SquareWalkBrainBis extends Brain {
+public class SquareWalkBrain extends Brain {
     int state;
     double oldAngle;
     int INIT_STATE = 0;
     int MOVE_STATE = 1;
     int TURN_STATE = 2;
+    protected boolean startPointReached = false;
     private static double EPSILON = 0.001;
 
     @Override
@@ -20,8 +21,6 @@ public class SquareWalkBrainBis extends Brain {
 
     @Override
     public void step() {
-        sendLogMessage("tir !");
-        fire(getHeading());
 
         // init state
         if (state == INIT_STATE && isSameDirection(getHeading(), Parameters.NORTH)) {

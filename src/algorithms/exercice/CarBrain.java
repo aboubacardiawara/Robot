@@ -2,7 +2,7 @@ package algorithms.exercice;
 
 import characteristics.Parameters;
 
-public class CarBrain extends SquareWalkBrainBis {
+public class CarBrain extends SquareWalkBrain {
 
 
     @Override
