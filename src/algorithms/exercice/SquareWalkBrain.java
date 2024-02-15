@@ -5,14 +5,13 @@ import robotsimulator.Brain;
 
 import static characteristics.IFrontSensorResult.Types.WALL;
 
-public class SquareWalkBrain extends Brain {
+public class SquareWalkBrain extends BaseBrain {
     int state;
     double oldAngle;
     int INIT_STATE = 0;
     int MOVE_STATE = 1;
     int RIGHT_TURN_STATE = 2;
     protected boolean startPointReached = false;
-    private static double EPSILON = 0.00001;
 
     @Override
     public void activate() {
@@ -55,18 +54,4 @@ public class SquareWalkBrain extends Brain {
 
     }
 
-    protected boolean wallDetected() {
-        return detectFront().getObjectType() == WALL;
-    }
-
-    protected boolean isSameDirection(double heading, double expectedDirection) {
-        return Math.abs(normalize(heading)-normalize(expectedDirection)) < EPSILON;
-    }
-
-    private double normalize(double dir){
-        double res=dir;
-        while (res<0) res+=2*Math.PI;
-        while (res>=2*Math.PI) res-=2*Math.PI;
-        return res;
-    }
 }
