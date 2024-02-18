@@ -4,44 +4,56 @@ import java.util.function.Supplier;
 
 public class State implements IState {
 
-    protected IState nextState;
-    protected Supplier<Boolean> transitionConditionMet;
-    private Supplier<Void> transitionAction;
+    protected IState[] nextStates;
+    protected Supplier<Boolean>[] transitionConditions;
+    protected Supplier<Void> transitionAction;
+    protected int cpt = 0;
+    public State(int stateCount) {
+        this.nextStates = new IState[stateCount];
+        this.transitionConditions = new Supplier[stateCount];
+    }
+
+    public State() {
+        this.nextStates = new IState[1];
+        this.transitionConditions = new Supplier[1];
+    }
 
     @Override
     public boolean hasNext() {
-        return nextState != null;
-    }
-
-    @Override
-    public IState next() throws TransitionConditionNotMetException {
-        if (transitionConditionMet.get()) {
-            return nextState;
+        for (int i = 0; i < nextStates.length; i++) {
+            if (nextStates[i] != null) {
+                return true;
+            }
         }
-        throw new TransitionConditionNotMetException();
+        return false;
     }
 
     @Override
-    public void setNext(IState state) {
-        this.nextState = state;
+    public IState next() throws AnyTransitionConditionMetException {
+
+        for (int i = 0; i < transitionConditions.length; i++) {
+            if (transitionConditions[i].get()) {
+                return nextStates[i];
+            }
+        }
+        throw new AnyTransitionConditionMetException();
     }
 
     @Override
-    public void setTransitionCondition(Supplier<Boolean> transitionCondition) {
-        this.transitionConditionMet = transitionCondition;
+    public void addNext(IState state, Supplier<Boolean> transitionCondition) {
+        transitionConditions[cpt]=transitionCondition;
+        nextStates[cpt] = state;
+        cpt++;
+    }
+
+    @Override
+    public void addNext(IState state) {
+        this.addNext(state, () -> true);
     }
 
     @Override
     public void setStateAction(Supplier<Void> transitionAction) {
         this.transitionAction = transitionAction;
-    }
-
-    @Override
-    public boolean transitionConditionMet() {
-        if (transitionConditionMet != null) {
-            return transitionConditionMet.get();
-        }
-        return false;
     }
 
     @Override

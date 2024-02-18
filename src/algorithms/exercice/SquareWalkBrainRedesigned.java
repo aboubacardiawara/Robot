@@ -2,7 +2,7 @@ package algorithms.exercice;
 
 import algorithms.compilation.IState;
 import algorithms.compilation.State;
-import algorithms.compilation.TransitionConditionNotMetException;
+import algorithms.compilation.AnyTransitionConditionMetException;
 import characteristics.Parameters;
 
 public class SquareWalkBrainRedesigned extends BaseBrain {
@@ -10,9 +10,9 @@ public class SquareWalkBrainRedesigned extends BaseBrain {
     IState currentState;
     double oldAngle;
     @Override
-    public void activate() {
-        currentState = buildStateMachine();
-    }
+        public void activate() {
+            currentState = buildStateMachine();
+        }
 
 
     @Override
@@ -20,7 +20,7 @@ public class SquareWalkBrainRedesigned extends BaseBrain {
         if (currentState.hasNext()) {
             try {
                 currentState = currentState.next();
-            } catch (TransitionConditionNotMetException e) {
+            } catch (AnyTransitionConditionMetException e) {
                 currentState.performsAction();
             }currentState.performsAction();
         }
@@ -32,19 +32,23 @@ public class SquareWalkBrainRedesigned extends BaseBrain {
         IState turnRightState = new State();
 
         // define states actions
-        initState.setNext(moveState);
+        initState.addNext(
+            moveState,
+            () -> isSameDirection(getHeading(), Parameters.NORTH)
+        );
         initState.setStateAction(() -> {stepTurn(Parameters.Direction.LEFT); return null;});
-        initState.setTransitionCondition(() -> isSameDirection(getHeading(), Parameters.NORTH));
 
-        moveState.setNext(turnRightState);
+        moveState.addNext(
+            turnRightState,
+            () -> wallDetected()
+        );
         moveState.setStateAction(() -> {oldAngle = getHeading(); move(); return null;});
-        moveState.setTransitionCondition(() -> wallDetected());
 
-        turnRightState.setNext(moveState);
-        turnRightState.setStateAction(() -> {stepTurn(Parameters.Direction.RIGHT); return null;});
-        turnRightState.setTransitionCondition(
+        turnRightState.addNext(
+            moveState,
             () -> isSameDirection(getHeading(), oldAngle+(Math.PI/2))
         );
+        turnRightState.setStateAction(() -> {stepTurn(Parameters.Direction.RIGHT); return null;});
 
         return initState;
     }

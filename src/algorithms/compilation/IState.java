@@ -4,15 +4,13 @@ import java.util.function.Supplier;
 
 public interface IState {
     boolean hasNext();
-    IState next() throws TransitionConditionNotMetException;
+    IState next() throws AnyTransitionConditionMetException;
 
-    void setNext(IState state);
+    void addNext(IState state, Supplier<Boolean> transitionCondition);
 
-    void setTransitionCondition(Supplier<Boolean> transitionCondition);
+    void addNext(IState state);
 
     void setStateAction(Supplier<Void> transitionAction);
-
-    boolean transitionConditionMet();
 
     void performsAction();
 }

@@ -6,7 +6,7 @@ import static characteristics.IFrontSensorResult.Types.WALL;
 
 public abstract class BaseBrain extends Brain {
 
-    protected static double EPSILON = 0.1;
+    protected static double EPSILON = 0.001;
     protected boolean wallDetected() {
         return detectFront().getObjectType() == WALL;
     }
