@@ -32,16 +32,16 @@ public class State implements IState {
     }
 
     @Override
-    public void setTransitionAction(Supplier<Void> transitionAction) {
+    public void setStateAction(Supplier<Void> transitionAction) {
         this.transitionAction = transitionAction;
     }
 
     @Override
     public boolean transitionConditionMet() {
-        if (transitionAction != null) {
-            transitionAction.get();
+        if (transitionConditionMet != null) {
+            return transitionConditionMet.get();
         }
-        return true;
+        return false;
     }
 
     @Override

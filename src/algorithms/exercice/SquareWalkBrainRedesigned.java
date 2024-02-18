@@ -22,7 +22,7 @@ public class SquareWalkBrainRedesigned extends BaseBrain {
                 currentState = currentState.next();
             } catch (TransitionConditionNotMetException e) {
                 currentState.performsAction();
-            }
+            }currentState.performsAction();
         }
     }
 
@@ -33,22 +33,19 @@ public class SquareWalkBrainRedesigned extends BaseBrain {
 
         // define states actions
         initState.setNext(moveState);
-        initState.setTransitionAction(() -> {stepTurn(Parameters.Direction.LEFT); return null;});
+        initState.setStateAction(() -> {stepTurn(Parameters.Direction.LEFT); return null;});
         initState.setTransitionCondition(() -> isSameDirection(getHeading(), Parameters.NORTH));
 
         moveState.setNext(turnRightState);
-        moveState.setTransitionAction(() -> {oldAngle = getHeading(); move(); return null;});
+        moveState.setStateAction(() -> {oldAngle = getHeading(); move(); return null;});
         moveState.setTransitionCondition(() -> wallDetected());
 
         turnRightState.setNext(moveState);
-        turnRightState.setTransitionAction(() -> {stepTurn(Parameters.Direction.RIGHT); return null;});
+        turnRightState.setStateAction(() -> {stepTurn(Parameters.Direction.RIGHT); return null;});
         turnRightState.setTransitionCondition(
             () -> isSameDirection(getHeading(), oldAngle+(Math.PI/2))
         );
 
-        // define transitions
-
-        // define transition conditions
         return initState;
     }
 }

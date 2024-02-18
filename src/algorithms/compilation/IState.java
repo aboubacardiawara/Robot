@@ -10,7 +10,7 @@ public interface IState {
 
     void setTransitionCondition(Supplier<Boolean> transitionCondition);
 
-    void setTransitionAction(Supplier<Void> transitionAction);
+    void setStateAction(Supplier<Void> transitionAction);
 
     boolean transitionConditionMet();
 
