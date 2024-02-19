@@ -1,14 +1,37 @@
 package algorithms.exercice;
 
+import algorithms.compilation.IState;
 import robotsimulator.Brain;
 
 import static characteristics.IFrontSensorResult.Types.WALL;
 
 public abstract class BaseBrain extends Brain {
 
+    IState currentState;
+    int position =0;
+
+    @Override
+    public void activate() {
+        currentState = buildStateMachine();
+    }
+
+    protected abstract IState buildStateMachine();
+
     protected static double EPSILON = 0.05;
     protected boolean wallDetected() {
         return detectFront().getObjectType() == WALL;
+    }
+
+    @Override
+    public void step() {
+        if (currentState.hasNext()) {
+            try {
+                currentState = currentState.next();
+            } catch (Exception e) {
+                currentState.performsAction();
+            }
+            currentState.performsAction();
+        }
     }
 
     protected boolean isSameDirection(double heading, double expectedDirection) {

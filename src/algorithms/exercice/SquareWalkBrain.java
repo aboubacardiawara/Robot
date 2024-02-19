@@ -1,5 +1,6 @@
 package algorithms.exercice;
 
+import algorithms.compilation.IState;
 import characteristics.Parameters;
 import robotsimulator.Brain;
 
@@ -52,6 +53,10 @@ public class SquareWalkBrain extends BaseBrain {
             return;
         }
 
+    }
+
+    protected IState buildStateMachine() {
+        return null;
     }
 
 }

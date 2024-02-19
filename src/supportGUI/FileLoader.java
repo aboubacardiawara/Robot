@@ -18,7 +18,7 @@ public class FileLoader {
     return HardCodedParameters.instantiate(Parameters.teamAMainBotBrainClass.getName(), IBrain.class);
   }
   public IBrain getTeamASecondaryBotBrain() {
-    return HardCodedParameters.instantiate(Parameters.teamASecondaryBotBrainClassName, IBrain.class);
+    return HardCodedParameters.instantiate(Parameters.teamASecondaryBotBrainClass.getName(), IBrain.class);
   }
   public IBrain getTeamBMainBotBrain() {
     return HardCodedParameters.instantiate(Parameters.teamBMainBotBrainClassName, IBrain.class);

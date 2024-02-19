@@ -29,7 +29,8 @@ public class Stage3 extends BaseBrain {
         }
     }
 
-    private IState buildStateMachine() {
+    @Override
+    protected IState buildStateMachine() {
         IState state0  = new State();
         IState state1  = new State();
         IState state2a = new State();

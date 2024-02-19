@@ -10,7 +10,7 @@ public class SquareWalkBrainRedesigned extends BaseBrain {
     IState currentState;
     double oldAngle;
     @Override
-        public void activate() {
+    public void activate() {
             currentState = buildStateMachine();
         }
 
@@ -26,7 +26,7 @@ public class SquareWalkBrainRedesigned extends BaseBrain {
         }
     }
 
-    private IState buildStateMachine() {
+    protected IState buildStateMachine() {
         IState initState = new State();
         IState moveState = new State();
         IState turnRightState = new State();
