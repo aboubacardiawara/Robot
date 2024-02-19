@@ -68,7 +68,7 @@ public class Parameters {
   public static final double teamBMainBotRadius = 50, //1 unit = 1mm, body radius
                              teamBMainBotFrontalDetectionRange = 300, //1 unit = 1mm, range of frontal sensor
                              teamBMainBotFrontalDetectionAngle = 0, //UNUSED AT THE MOMENT, frontal sensor detection angle is suppoed to be absolute
-                             teamBMainBotSpeed = 1, //1 unit = 1mm, distance performed at step movement
+                             teamBMainBotSpeed = 5, //1 unit = 1mm, distance performed at step movement
                              teamBMainBotStepTurnAngle = 0.01*Math.PI, //trigonometric unit, angle performed at step turn action
                              teamBMainBotHealth = 300, //FICTIONAL SIMOVIES
                              teamBMainBot1InitX = 2800, //1 unit = 1mm, coordinate of central point

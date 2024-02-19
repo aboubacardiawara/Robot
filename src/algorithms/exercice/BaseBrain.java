@@ -2,6 +2,7 @@ package algorithms.exercice;
 
 import algorithms.compilation.IState;
 import robotsimulator.Brain;
+import robotsimulator.FrontSensorResult;
 
 import static characteristics.IFrontSensorResult.Types.WALL;
 
@@ -19,7 +20,12 @@ public abstract class BaseBrain extends Brain {
 
     protected static double EPSILON = 0.05;
     protected boolean wallDetected() {
-        return detectFront().getObjectType() == WALL;
+        boolean res =  detectFront().getObjectType() == WALL;
+        FrontSensorResult object = detectFront();
+        if (res) {
+            System.out.println("radar: " + this.detectRadar().get(0).getObjectDistance());
+        }
+        return res;
     }
 
     @Override

@@ -8,14 +8,19 @@ public class State implements IState {
     protected Supplier<Boolean>[] transitionConditions;
     protected Supplier<Void> transitionAction;
     protected int cpt = 0;
+    protected String description;
     public State(int stateCount) {
         this.nextStates = new IState[stateCount];
         this.transitionConditions = new Supplier[stateCount];
     }
 
     public State() {
-        this.nextStates = new IState[1];
-        this.transitionConditions = new Supplier[1];
+        this(1);
+        this.description = "";
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     @Override

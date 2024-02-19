@@ -13,4 +13,6 @@ public interface IState {
     void setStateAction(Supplier<Void> transitionAction);
 
     void performsAction();
+
+    void setDescription(String tourneVersLeNord);
 }
