@@ -17,3 +17,4 @@ public interface IRadarResult {
   public double getObjectDistance(); //return the distance of observed object, from center to center
   public double getObjectRadius(); //return the radius of observed object
 }
+

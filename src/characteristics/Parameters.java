@@ -6,10 +6,7 @@
  * ******************************************************/
 package characteristics;
 
-import algorithms.exercice.CanvasDimensionCalculatorBrain;
-import algorithms.exercice.SquareWalkBrain;
-import algorithms.exercice.SquareWalkBrainRedesigned;
-import algorithms.exercice.stage3.Stage3;
+import algorithms.CampBot;
 
 public class Parameters {
   //---------------------------//
@@ -27,7 +24,7 @@ public class Parameters {
   //---TEAM-A-PARAMETERS---//
   //-----------------------//
   public static final String teamAName = "KD Runners";
-  public static final Class<? extends IBrain>  teamAMainBotBrainClass = Stage3.class; //class given by name; is supposed to extends robotsimulator.Brain
+  public static final Class<? extends IBrain>  teamAMainBotBrainClass = CampBot.class; //class given by name; is supposed to extends robotsimulator.Brain
   public static final String teamAMainBotAvatar = "avatars/cyclope.png"; //path relative to location of ant build.xml file
   public static final double teamAMainBotRadius = 50, //1 unit = 1mm, body radius
                              teamAMainBotFrontalDetectionRange = 300, //1 unit = 1mm, range of frontal sensor
@@ -45,7 +42,7 @@ public class Parameters {
                              teamAMainBot3InitY = 1200, //1 unit = 1mm, coordinate of central point
                              teamAMainBot3InitHeading = EAST; //clockwise trigonometric unit, according to screen pixel coordinate reference
 
-  public static final String teamASecondaryBotBrainClassName = "algorithms.BrainCanevas"; //class given by name; is supposed to extends robotsimulator.Brain
+  public static final String teamASecondaryBotBrainClassName = "algorithms.exercice.stage3.Stage3"; //class given by name; is supposed to extends robotsimulator.Brain
   public static final String teamASecondaryBotAvatar = "avatars/clumpsy.png"; //path relative to location of ant build.xml file
   public static final double teamASecondaryBotRadius = 50, //1 unit = 1mm, body radius
                              teamASecondaryBotFrontalDetectionRange = 500, //1 unit = 1mm, range of frontal sensor
