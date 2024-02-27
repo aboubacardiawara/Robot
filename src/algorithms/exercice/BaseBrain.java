@@ -1,6 +1,7 @@
 package algorithms.exercice;
 
 import algorithms.compilation.IState;
+import characteristics.Parameters;
 import robotsimulator.Brain;
 import robotsimulator.FrontSensorResult;
 
@@ -49,5 +50,13 @@ public abstract class BaseBrain extends Brain {
         while (res<0) res+=2*Math.PI;
         while (res>=2*Math.PI) res-=2*Math.PI;
         return res;
+    }
+
+    protected void turnRight() {
+        stepTurn(Parameters.Direction.RIGHT);
+    }
+
+    protected void turnLeft() {
+        stepTurn(Parameters.Direction.LEFT);
     }
 }

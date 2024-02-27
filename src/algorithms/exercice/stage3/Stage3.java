@@ -7,9 +7,9 @@ import characteristics.Parameters;
 
 public class Stage3 extends BaseBrain {
     IState currentState;
-    int ballet = 0;
-    int positionX = 0;
-    int positionY = 0;
+    public int ballet = 0;
+    public int positionX = 0;
+    public int positionY = 0;
 
     @Override
     public void activate() {
@@ -18,7 +18,8 @@ public class Stage3 extends BaseBrain {
 
     @Override
     public void step() {
-        sendLogMessage("ballet: " + ballet);
+        sendLogMessage("fire !! ");
+        fire(getHeading());
         if (currentState.hasNext()) {
             try {
                 currentState = currentState.next();
@@ -113,7 +114,7 @@ public class Stage3 extends BaseBrain {
         return state0;
     }
 
-    private void moveDecorated() {
+    protected void moveDecorated() {
         move();
         positionX +=Parameters.teamASecondaryBotSpeed*Math.cos(getHeading());
         positionY +=Parameters.teamASecondaryBotSpeed*Math.sin(getHeading());

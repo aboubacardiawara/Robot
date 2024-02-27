@@ -6,8 +6,9 @@
  * ******************************************************/
 package characteristics;
 
+import algorithms.BrainCanevas;
 import algorithms.CampBot;
-import algorithms.exercice.stage3.Stage3;
+import algorithms.exercice.RendezVous;
 import algorithms.exercice.stage3.Stage6;
 
 public class Parameters {
@@ -26,7 +27,7 @@ public class Parameters {
   //---TEAM-A-PARAMETERS---//
   //-----------------------//
   public static final String teamAName = "KD Runners";
-  public static final Class<? extends IBrain>  teamAMainBotBrainClass = CampBot.class; //class given by name; is supposed to extends robotsimulator.Brain
+  public static final Class<? extends IBrain>  teamAMainBotBrainClass = RendezVous.class; //class given by name; is supposed to extends robotsimulator.Brain
   public static final String teamAMainBotAvatar = "avatars/cyclope.png"; //path relative to location of ant build.xml file
   public static final double teamAMainBotRadius = 50, //1 unit = 1mm, body radius
                              teamAMainBotFrontalDetectionRange = 300, //1 unit = 1mm, range of frontal sensor
@@ -44,12 +45,12 @@ public class Parameters {
                              teamAMainBot3InitY = 1200, //1 unit = 1mm, coordinate of central point
                              teamAMainBot3InitHeading = EAST; //clockwise trigonometric unit, according to screen pixel coordinate reference
 
-  public static final Class<? extends IBrain> teamASecondaryBotBrainClass = Stage6.class; //class given by name; is supposed to extends robotsimulator.Brain
+  public static final Class<? extends IBrain> teamASecondaryBotBrainClass = BrainCanevas.class; //class given by name; is supposed to extends robotsimulator.Brain
   public static final String teamASecondaryBotAvatar = "avatars/clumpsy.png"; //path relative to location of ant build.xml file
   public static final double teamASecondaryBotRadius = 50, //1 unit = 1mm, body radius
                              teamASecondaryBotFrontalDetectionRange = 500, //1 unit = 1mm, range of frontal sensor
                              teamASecondaryBotFrontalDetectionAngle = 0, //UNUSED AT THE MOMENT, frontal sensor detection angle is suppoed to be absolute
-                             teamASecondaryBotSpeed = 3, //1 unit = 1mm, distance performed at step movement
+                             teamASecondaryBotSpeed = 5, //1 unit = 1mm, distance performed at step movement
                              teamASecondaryBotStepTurnAngle = 0.01*Math.PI, //trigonometric unit, angle performed at step turn action
                              teamASecondaryBotHealth = 100, //FICTIONAL SIMOVIES
                              teamASecondaryBot1InitX = 500, //1 unit = 1mm, coordinate of central point
