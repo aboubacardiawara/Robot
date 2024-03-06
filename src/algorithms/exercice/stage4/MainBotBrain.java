@@ -30,30 +30,26 @@ public class MainBotBrain extends BaseBrain {
         turnLittleBitLeft.addNext(moveEast, () -> isSameDirection(getHeading(), -Math.PI / 4));
         turnLittleBitLeft.setStateAction(() -> {
             stepTurn(Parameters.Direction.LEFT);
-            
         });
 
         moveEast.addNext(turnTowardOpponent, () -> opponentDetected());
         moveEast.setStateAction(() -> {
             move();
-            
         });
 
         turnTowardOpponent.addNext(fireState, () -> isSameDirection(getHeading(), targetDirection));
         turnTowardOpponent.setStateAction(() -> {
             stepTurn(Parameters.Direction.LEFT);
-            
-
         });
 
         moveBackState.setStateAction(() -> {
             move();
-            
+
         });
 
         fireState.setStateAction(() -> {
             fire(targetDirection);
-            
+
         });
 
         return turnLittleBitLeft;
@@ -71,7 +67,7 @@ public class MainBotBrain extends BaseBrain {
             targetDirection = Math.atan2(enmyY - robotY, enmyX - robotX);
             return true;
         }
-        
+
         return false;
     }
 
