@@ -3,9 +3,12 @@ package algorithms.exercice.sceance4;
 import algorithms.compilation.IState;
 import algorithms.compilation.State;
 import algorithms.exercice.BaseBrain;
+import algorithms.exercice.SecondaryBotBaseBrain;
 import characteristics.IRadarResult;
+import characteristics.Parameters;
 
-public class SecondaryBotBrain extends BaseBrain {
+public class SecondaryBotBrain extends SecondaryBotBaseBrain {
+    Boolean detected = false;
 
     @Override
     protected IState buildStateMachine() {
@@ -14,7 +17,7 @@ public class SecondaryBotBrain extends BaseBrain {
 
         initState.addNext(finalState, () -> false);
         initState.setStateAction(() -> {
-            move();
+
             for (IRadarResult radarResult : detectRadar()) {
                 if (isOpponentBot(radarResult)) {
                     double opponentPosX = this.robotX
@@ -23,7 +26,12 @@ public class SecondaryBotBrain extends BaseBrain {
                             + radarResult.getObjectDistance() * Math.sin(radarResult.getObjectDirection());
                     String message = opponentPosX + "," + opponentPosY;
                     broadcast(message);
+                    moveBack();
+                    detected = true;
                 }
+            }
+            if (!detected) {
+                move();
             }
             return null;
         });

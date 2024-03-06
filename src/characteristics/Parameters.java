@@ -41,7 +41,7 @@ public class Parameters {
       teamAMainBotFrontalDetectionRange = 300, // 1 unit = 1mm, range of frontal sensor
       teamAMainBotFrontalDetectionAngle = 0, // UNUSED AT THE MOMENT, frontal sensor detection angle is suppoed to be
                                              // absolute
-      teamAMainBotSpeed = 5, // 1 unit = 1mm, distance performed at step movement
+      teamAMainBotSpeed = 3, // 1 unit = 1mm, distance performed at step movement
       teamAMainBotStepTurnAngle = 0.01 * Math.PI, // trigonometric unit, angle performed at step turn action
       teamAMainBotHealth = 300, // FICTIONAL SIMOVIES
       teamAMainBot1InitX = 200, // 1 unit = 1mm, coordinate of central point
@@ -65,7 +65,7 @@ public class Parameters {
       teamASecondaryBotFrontalDetectionRange = 500, // 1 unit = 1mm, range of frontal sensor
       teamASecondaryBotFrontalDetectionAngle = 0, // UNUSED AT THE MOMENT, frontal sensor detection angle is suppoed to
                                                   // be absolute
-      teamASecondaryBotSpeed = 5, // 1 unit = 1mm, distance performed at step movement
+      teamASecondaryBotSpeed = 3, // 1 unit = 1mm, distance performed at step movement
       teamASecondaryBotStepTurnAngle = 0.01 * Math.PI, // trigonometric unit, angle performed at step turn action
       teamASecondaryBotHealth = 100, // FICTIONAL SIMOVIES
       teamASecondaryBot1InitX = 500, // 1 unit = 1mm, coordinate of central point

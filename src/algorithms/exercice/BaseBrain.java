@@ -18,13 +18,6 @@ public abstract class BaseBrain extends Brain {
     int position = 0;
 
     @Override
-    public void move() {
-        super.move();
-        robotX += Parameters.teamASecondaryBotSpeed * Math.cos(getHeading());
-        robotY += Parameters.teamASecondaryBotSpeed * Math.sin(getHeading());
-    }
-
-    @Override
     public void activate() {
         currentState = buildStateMachine();
     }
@@ -35,11 +28,13 @@ public abstract class BaseBrain extends Brain {
 
     protected boolean wallDetected() {
         boolean res = detectFront().getObjectType() == WALL;
-        FrontSensorResult object = detectFront();
-        if (res) {
-            System.out.println("radar: " + this.detectRadar().get(0).getObjectDistance());
-        }
         return res;
+    }
+
+    protected void beforeEachStep() {
+    }
+
+    protected void afterEachStep() {
     }
 
     @Override
@@ -48,9 +43,10 @@ public abstract class BaseBrain extends Brain {
             try {
                 currentState = currentState.next();
             } catch (Exception e) {
+                this.beforeEachStep();
                 currentState.performsAction();
+                this.afterEachStep();
             }
-            currentState.performsAction();
         }
     }
 
