@@ -9,9 +9,9 @@ package characteristics;
 import algorithms.BrainCanevas;
 import algorithms.CampBot;
 import algorithms.exercice.RendezVous;
-import algorithms.exercice.sceance4.MainBotBrain;
-import algorithms.exercice.sceance4.SecondaryBotBrain;
 import algorithms.exercice.stage3.Stage6;
+import algorithms.exercice.stage4.MainBotBrain;
+import algorithms.exercice.stage4.SecondaryBotBrain;
 
 public class Parameters {
   // ---------------------------//

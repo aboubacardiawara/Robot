@@ -1,8 +1,8 @@
 package algorithms.exercice.stage3;
 
-import algorithms.compilation.IState;
-import algorithms.compilation.State;
-import algorithms.exercice.BaseBrain;
+import algorithms.aboubacarlyna.brains.core.BaseBrain;
+import algorithms.aboubacarlyna.statemachine.impl.State;
+import algorithms.aboubacarlyna.statemachine.interfaces.IState;
 import characteristics.Parameters;
 
 
@@ -28,22 +28,22 @@ public class Stage6 extends BaseBrain {
     state0.setDescription("Tourne vers le nord");
     state0.addNext(state1,() -> isSameDirection(getHeading(), Parameters.NORTH));
     //state0.addNext(state3);
-    state0.setStateAction(() ->{stepTurn(Parameters.Direction.LEFT); return null;});
+    state0.setStateAction(() ->{stepTurn(Parameters.Direction.LEFT); });
 
     //state1
     state1.setDescription("Avance jusqu'au mur");
     state1.addNext(state2,() -> wallDetected());
-    state1.setStateAction(() -> {move(); return null;} );
+    state1.setStateAction(() -> {move(); } );
 
     //state2
     state2.setDescription("Tourne sur ta droite et pointe sur le point de rdv");
     state2.addNext(state3, () -> isSameDirection(Math.atan2((positionY - robotY) , (positionX - robotX)), getHeading()));
-    state2.setStateAction(() -> {stepTurn(Parameters.Direction.RIGHT); return null;} );
+    state2.setStateAction(() -> {stepTurn(Parameters.Direction.RIGHT); } );
 
     //state3
     state3.setDescription("Avance aux abords du point de rdv");
     state3.addNext(state4,  () -> positionAtteinte()); //distance entre le robot et le point(x, y) < Distance_limit
-    state3.setStateAction(() -> { moveDecorated(); return null;});
+    state3.setStateAction(() -> { moveDecorated(); });
 
     return state0;
   }
