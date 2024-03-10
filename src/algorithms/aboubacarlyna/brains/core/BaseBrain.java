@@ -12,17 +12,28 @@ import algorithms.aboubacarlyna.statemachine.interfaces.IState;
 
 public abstract class BaseBrain extends Brain {
 
-    protected double robotX = 400;
-    protected double robotY = 400;
-    IState currentState;
+    protected double robotX;
+    protected double robotY;
+    protected IState currentState;
     int position = 0;
+
+    protected double initialX() {
+        return 0;
+    }
+
+    protected double initialY() {
+        return 0;
+    }
 
     @Override
     public void activate() {
+        this.robotX = initialX();
+        this.robotY = initialY();
         currentState = buildStateMachine();
     }
 
-    protected abstract IState buildStateMachine();
+
+	protected abstract IState buildStateMachine();
 
     protected static double EPSILON = 0.05;
 

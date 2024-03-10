@@ -65,4 +65,16 @@ public class Stage6 extends BaseBrain {
   {
     return Math.sqrt(Math.pow((positionX - robotX),2) + Math.pow((positionY - robotY),2));
   }
+
+  @Override
+  protected double initialX() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'initialX'");
+  }
+
+  @Override
+  protected double initialY() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'initialY'");
+  }
 }

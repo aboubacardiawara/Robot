@@ -68,4 +68,9 @@ public class State implements IState {
     public void performsAction() {
         this.transitionAction.run();
     }
+
+    @Override
+    public String toString() {
+        return this.description;
+    }
 }

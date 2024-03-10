@@ -53,4 +53,5 @@ public class SquareWalkBrainRedesigned extends BaseBrain {
 
         return initState;
     }
+
 }

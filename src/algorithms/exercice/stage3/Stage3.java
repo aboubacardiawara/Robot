@@ -119,4 +119,16 @@ public class Stage3 extends BaseBrain {
         positionX +=Parameters.teamASecondaryBotSpeed*Math.cos(getHeading());
         positionY +=Parameters.teamASecondaryBotSpeed*Math.sin(getHeading());
     }
+
+    @Override
+    protected double initialX() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'initialX'");
+    }
+
+    @Override
+    protected double initialY() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'initialY'");
+    }
 }

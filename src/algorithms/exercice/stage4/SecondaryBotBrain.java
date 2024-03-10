@@ -4,6 +4,7 @@ import algorithms.aboubacarlyna.brains.core.SecondaryBotBaseBrain;
 import algorithms.aboubacarlyna.statemachine.impl.State;
 import algorithms.aboubacarlyna.statemachine.interfaces.IState;
 import characteristics.IRadarResult;
+import characteristics.Parameters;
 
 public class SecondaryBotBrain extends SecondaryBotBaseBrain {
     Boolean detected = false;
@@ -11,9 +12,7 @@ public class SecondaryBotBrain extends SecondaryBotBaseBrain {
     @Override
     protected IState buildStateMachine() {
         IState initState = new State();
-        IState finalState = new State();
 
-        initState.addNext(finalState, () -> false);
         initState.setStateAction(() -> {
 
             for (IRadarResult radarResult : detectRadar()) {
@@ -22,9 +21,10 @@ public class SecondaryBotBrain extends SecondaryBotBaseBrain {
                             + radarResult.getObjectDistance() * Math.cos(radarResult.getObjectDirection());
                     double opponentPosY = this.robotY
                             + radarResult.getObjectDistance() * Math.sin(radarResult.getObjectDirection());
-                    String message = opponentPosX + "," + opponentPosY;
+                    String message = opponentPosX + "," + opponentPosY +"," +radarResult.getObjectDirection();
                     broadcast(message);
-                    moveBack();
+                    
+                    //moveBack();
                     detected = true;
                 }
             }
@@ -34,6 +34,24 @@ public class SecondaryBotBrain extends SecondaryBotBaseBrain {
             
         });
         return initState;
+    }
+
+    @Override
+    protected double initialX() {
+        if (currentRobot == Robots.SRUP) {
+            return Parameters.teamASecondaryBot1InitX;
+        } else{
+            return Parameters.teamASecondaryBot2InitX;
+        }
+    }
+
+    @Override
+    protected double initialY() {
+        if (currentRobot == Robots.SRUP) {
+            return Parameters.teamASecondaryBot1InitY;
+        } else{
+            return Parameters.teamASecondaryBot2InitY;
+        }
     }
 
 }
