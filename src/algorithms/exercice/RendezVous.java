@@ -1,7 +1,7 @@
 package algorithms.exercice;
 
-import algorithms.compilation.IState;
-import algorithms.compilation.State;
+import algorithms.aboubacarlyna.statemachine.impl.State;
+import algorithms.aboubacarlyna.statemachine.interfaces.IState;
 import algorithms.exercice.stage3.Stage3;
 import characteristics.IRadarResult;
 import characteristics.Parameters;
@@ -47,18 +47,18 @@ public class RendezVous extends Stage3 {
         turnSouthState.addNext(moveSouthState, ()-> isSameDirection(getHeading(), Parameters.SOUTH));
         turnSouthState.setStateAction(() -> {
             turnRight();
-            return null;
+            
         });
 
         // state 1
         moveSouthState.addNext(turnEastState, () -> wallDetected());
         moveSouthState.setStateAction(() -> {moveDecorated();
-            return null;
+            
         });
 
         // state 2a
         turnEastState.addNext(moveEastState, ()-> isSameDirection(getHeading(), Parameters.EAST));
-        turnEastState.setStateAction(() -> {turnLeft(); return null;});
+        turnEastState.setStateAction(() -> {turnLeft(); });
 
         // state 2
         Supplier<Boolean> stopCondition = () -> (
@@ -67,30 +67,29 @@ public class RendezVous extends Stage3 {
                     : positionX >= QUARTER/3
         );
         moveEastState.addNext(cycleMoveState, stopCondition);
-        moveEastState.setStateAction(() -> {moveDecorated(); return null;});
+        moveEastState.setStateAction(() -> {moveDecorated(); });
 
         // dance du feu et de la glace
 
         cycleMoveState.addNext(cycleSaveAngleState, () -> tours >= 10);
-        cycleMoveState.setStateAction(() ->{this.moveDecorated(); return null;});
+        cycleMoveState.setStateAction(() ->{this.moveDecorated(); });
 
         cycleSaveAngleState.addNext(cycleTurnState);
-        cycleSaveAngleState.setStateAction(() -> {angle = getHeading(); tours = 0; return null;});
+        cycleSaveAngleState.setStateAction(() -> {angle = getHeading(); tours = 0; });
 
         cycleTurnState.addNext(cycleMoveState, () -> isSameDirection(getHeading(), angle - Math.PI/40));
-        cycleTurnState.setStateAction(() -> {turnAngle();  return null; });
+        cycleTurnState.setStateAction(() -> {turnAngle();   });
 
         // state SINK
         sink.addNext(null );
-        sink.setStateAction(() -> {return null;});
+        sink.setStateAction(() -> {});
 
 
         return turnSouthState;
     }
 
-    private Void turnAngle() {
+    private void turnAngle() {
         stepTurn(Parameters.Direction.LEFT);
-        return null;
     }
 
     @Override
