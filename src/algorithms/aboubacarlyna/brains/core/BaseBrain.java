@@ -16,6 +16,9 @@ public abstract class BaseBrain extends Brain {
     protected double robotY;
     protected IState currentState;
     int position = 0;
+    protected String OPPONENT_POS_MSG_SIGN = "OPPONENT_POS_MSG";
+    protected String TEAM_POS_MSG_SIGN = "TEAM_POS_MSG";
+    protected String MSG_SEPARATOR = ":";
 
     protected double initialX() {
         return 0;

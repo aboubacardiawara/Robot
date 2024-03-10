@@ -21,7 +21,7 @@ public class SecondaryBotBrain extends SecondaryBotBaseBrain {
                             + radarResult.getObjectDistance() * Math.cos(radarResult.getObjectDirection());
                     double opponentPosY = this.robotY
                             + radarResult.getObjectDistance() * Math.sin(radarResult.getObjectDirection());
-                    String message = opponentPosX + "," + opponentPosY +"," +radarResult.getObjectDirection();
+                    String message = buildOpponentPosMessage(radarResult, opponentPosX, opponentPosY);
                     broadcast(message);
                     
                     //moveBack();
@@ -35,6 +35,18 @@ public class SecondaryBotBrain extends SecondaryBotBaseBrain {
         });
         return initState;
     }
+
+
+    private String buildOpponentPosMessage(IRadarResult radarResult, double opponentPosX, double opponentPosY) {
+        return this.OPPONENT_POS_MSG_SIGN 
+        + this.MSG_SEPARATOR 
+        + opponentPosY 
+        + this.MSG_SEPARATOR 
+        + opponentPosX 
+        + this.MSG_SEPARATOR 
+        + radarResult.getObjectDirection();
+    }
+
 
     @Override
     protected double initialX() {
