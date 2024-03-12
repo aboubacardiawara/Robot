@@ -23,7 +23,6 @@ public abstract class MainBotBaseBrain extends BaseBrain {
         ArrayList<IRadarResult> mainRobotsAround = detectRadar();
 
         if (thereIsRobotUpAndDown(mainRobotsAround)) {
-            System.out.println("MRMIDDLE");
             return Robots.MRMIDDLE;
         } else if (thereIsRobotUp(mainRobotsAround)) {
             return Robots.MRBOTTOM;

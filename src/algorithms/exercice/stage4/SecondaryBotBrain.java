@@ -42,7 +42,11 @@ public class SecondaryBotBrain extends SecondaryBotBaseBrain {
         + this.MSG_SEPARATOR 
         + opponentPosY 
         + this.MSG_SEPARATOR 
-        + opponentPosX;
+        + opponentPosX 
+        + this.MSG_SEPARATOR
+        + this.getHealth() 
+        + this.MSG_SEPARATOR
+        + "secondary";
     }
 
 

@@ -9,12 +9,13 @@ import static characteristics.IFrontSensorResult.Types.WALL;
 import java.util.Map;
 import java.util.Objects;
 
+import algorithms.aboubacarlyna.brains.core.dto.RobotState;
 import algorithms.aboubacarlyna.statemachine.interfaces.IState;
 
 public abstract class BaseBrain extends Brain {
 
     // main robot (up|middle|bottom) + secondary robot (up|bottom)
-    protected enum Robots {
+    public enum Robots {
         MRUP, MRMIDDLE, MRBOTTOM, SRUP, SRBOTTOM
     };
 
@@ -26,9 +27,9 @@ public abstract class BaseBrain extends Brain {
     protected double robotY;
     protected IState currentState;
     int position = 0;
-    protected String OPPONENT_POS_MSG_SIGN = "OPPONENT_POS_MSG";
-    protected String TEAM_POS_MSG_SIGN = "TEAM_POS_MSG";
-    protected String MSG_SEPARATOR = ":";
+    public static String OPPONENT_POS_MSG_SIGN = "OPPONENT_POS_MSG";
+    public static String TEAM_POS_MSG_SIGN = "TEAM_POS_MSG";
+    public static String MSG_SEPARATOR = ":";
 
     protected double initialX() {
         return 0;
@@ -59,18 +60,21 @@ public abstract class BaseBrain extends Brain {
     }
 
     protected void beforeEachStep() {
-        sendMyPositionToTeammates();
+        sendMyStateToTeammates();
     }
 
     protected void afterEachStep() {
     }
 
-    private void sendMyPositionToTeammates() {
+    private void sendMyStateToTeammates() {
         String message = TEAM_POS_MSG_SIGN + MSG_SEPARATOR
                 + currentRobot + MSG_SEPARATOR
                 + robotY + MSG_SEPARATOR
-                + robotX;
-        broadcast(message);
+                + robotX + MSG_SEPARATOR
+                + this.getHealth()+ MSG_SEPARATOR
+                +"main";
+        RobotState robotState = RobotState.of(message);
+        broadcast(robotState.toString());
     }
 
     @Override
@@ -92,7 +96,11 @@ public abstract class BaseBrain extends Brain {
     }
 
     protected boolean isSameDirection(double heading, double expectedDirection) {
-        return Math.abs(heading - normalize(expectedDirection)) < EPSILON;
+        return isSameDirection(heading, expectedDirection, EPSILON);
+    }
+
+    protected boolean isSameDirection(double heading, double expectedDirection, double epsilon) {
+        return Math.abs(heading - normalize(expectedDirection)) < epsilon;
     }
 
     private double normalize(double dir) {

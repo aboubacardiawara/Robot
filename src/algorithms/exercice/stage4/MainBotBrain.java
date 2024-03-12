@@ -9,6 +9,9 @@ import java.util.Random;
 import java.util.function.Predicate;
 
 import algorithms.aboubacarlyna.brains.core.MainBotBaseBrain;
+import algorithms.aboubacarlyna.brains.core.dto.Const;
+import algorithms.aboubacarlyna.brains.core.dto.Position;
+import algorithms.aboubacarlyna.brains.core.dto.RobotState;
 import algorithms.aboubacarlyna.statemachine.impl.State;
 import algorithms.aboubacarlyna.statemachine.interfaces.IState;
 import characteristics.Parameters;
@@ -19,7 +22,7 @@ public class MainBotBrain extends MainBotBaseBrain {
 
     protected Robots currentRobot;
     Random rn = new Random();
-    protected Map<Robots, double[]> teammatesPositions;
+    protected Map<Robots, RobotState> teammatesPositions;
     private boolean shouldFire = false;
 
     private ArrayList<String> receivedMessages;
@@ -28,7 +31,7 @@ public class MainBotBrain extends MainBotBaseBrain {
     @Override
     protected IState buildStateMachine() {
         Random rn = new Random();
-        this.teammatesPositions = new HashMap<Robots, double[]>();
+        this.teammatesPositions = new HashMap<Robots, RobotState>();
         IState turnLittleBitLeft = new State();
         turnLittleBitLeft.setDescription("turnLittleBitLeft");
         IState moveEast = new State();
@@ -83,13 +86,12 @@ public class MainBotBrain extends MainBotBaseBrain {
 
     private boolean thereIsTeammatesInTargetDirection() {
          for (Robots robot : teammatesPositions.keySet()) {
-            double[] pos = teammatesPositions.get(robot);
-            double y = pos[1];
-            double x = pos[0];
-            double distance = Math.sqrt(Math.pow(x - robotX, 2) + Math.pow(y - robotY, 2));
+            Position pos = teammatesPositions.get(robot).getPosition();
+            
+            double distance = Math.sqrt(Math.pow(pos.getX() - robotX, 2) + Math.pow(pos.getY() - robotY, 2));
             if (distance < Parameters.bulletRange) {
-                double direction = Math.atan2(y - robotY, x - robotX);
-                if (isSameDirection(direction, targetDirection)) {
+                double direction = Math.atan2(pos.getY() - robotY, pos.getX() - robotX);
+                if (isSameDirection(direction, targetDirection, 1)) {
                     sendLogMessage(robot.name() + " is in the target direction");
                     return true;
                 }
@@ -132,36 +134,24 @@ public class MainBotBrain extends MainBotBaseBrain {
     private List<Position> extractPositions(ArrayList<String> messages) {
         return messages.stream().map(msg -> {
             String[] elements = parseOpponentsPosMessage(msg);
-            double y = Double.parseDouble(elements[0]);
-            double x = Double.parseDouble(elements[1]);
+            double y = Double.valueOf(elements[0]);
+            double x = Double.valueOf(elements[1]);
             return new Position(x, y);
         }).collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
     }
 
     private String[] parseOpponentsPosMessage(String msg) {
-        String[] elements = msg.split(this.MSG_SEPARATOR);
+        String[] elements = msg.split(Const.MSG_SEPARATOR);
         String[] result = Arrays.copyOfRange(elements, 1, elements.length);
         return result;
-    }
-
-    private String[] parseTemmatesPosMessage(String msg) {
-        String[] res = msg.split(this.MSG_SEPARATOR);
-        System.out.println("res: " + Arrays.toString(res));
-        return Arrays.copyOfRange(res, 1, res.length);
     }
 
     private void updateTeammatesPositions() {
         ArrayList<String> messages = filterMessages(
                 this.receivedMessages,
-                msg -> msg.startsWith(this.TEAM_POS_MSG_SIGN, 0));
+                msg -> msg.startsWith(Const.TEAM_POS_MSG_SIGN, 0));
         System.out.println("updateTeammatesPositions: " + messages.size());
-        messages.forEach(msg -> {
-            //System.out.println("msg: " + msg );
-            String[] elements = parseTemmatesPosMessage(msg);
-            double y = Double.parseDouble(elements[1]);
-            double x = Double.parseDouble(elements[2]);
-            this.teammatesPositions.put(Robots.valueOf(elements[0]), new double[] { x, y });
-        });
+        messages.forEach(msg -> RobotState.of(msg));
     }
 
     @Override
@@ -177,32 +167,11 @@ public class MainBotBrain extends MainBotBaseBrain {
     private void logTeammatesPositions() {
         String logMessage = "";
         for (Robots robot : teammatesPositions.keySet()) {
-            double[] pos = teammatesPositions.get(robot);
-            logMessage += robot.name() + " x: " + pos[0] + " y: " + pos[1] + "\n";
+            Position pos = teammatesPositions.get(robot).getPosition();
+            logMessage += robot.name() + " x: " + pos.getX() + " y: " + pos.getY() + "\n";
         }
         sendLogMessage(logMessage);
     }
 
-    
-
-    
-
 }
 
-class Position {
-    private double x;
-    private double y;
-
-    public Position(double x, double y) {
-        this.x = x;
-        this.y = y;
-    }
-
-    public double getX() {
-        return x;
-    }
-
-    public double getY() {
-        return y;
-    }
-}
