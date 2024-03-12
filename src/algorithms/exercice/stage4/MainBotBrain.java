@@ -6,14 +6,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.function.BooleanSupplier;
 import java.util.function.Predicate;
 
-import algorithms.aboubacarlyna.brains.core.BaseBrain;
 import algorithms.aboubacarlyna.brains.core.MainBotBaseBrain;
 import algorithms.aboubacarlyna.statemachine.impl.State;
 import algorithms.aboubacarlyna.statemachine.interfaces.IState;
-import characteristics.IRadarResult;
 import characteristics.Parameters;
 
 public class MainBotBrain extends MainBotBaseBrain {
@@ -22,7 +19,6 @@ public class MainBotBrain extends MainBotBaseBrain {
 
     protected Robots currentRobot;
     Random rn = new Random();
-    protected Map<Robots, double[]> teammatesPositions;
     private boolean shouldFire = false;
 
     @Override
@@ -74,10 +70,10 @@ public class MainBotBrain extends MainBotBaseBrain {
         /// il bouge)
         fireState.addNext(stopFiring, () -> !detectOpponents());
         fireState.setStateAction(() -> {
-                // todo: si le robot tire vers un robot de son equipe ????)
-                if (shouldFire) {
-                    fire(targetDirection);
-                }
+            // todo: si le robot tire vers un robot de son equipe ????)
+            if (shouldFire) {
+                fire(targetDirection);
+            }
         });
 
         stopFiring.addNext(fireState, () -> detectOpponents());
@@ -87,10 +83,9 @@ public class MainBotBrain extends MainBotBaseBrain {
 
         return turnLittleBitLeft;
     }
-    
 
-    private boolean detecte_temmates_in_targetDirection() {
-         for (Robots robot : teammatesPositions.keySet()) {
+    private boolean thereIsTeammatesInTargetDirection() {
+        for (Robots robot : teammatesPositions.keySet()) {
             double[] pos = teammatesPositions.get(robot);
             double y = pos[1];
             double x = pos[0];
@@ -102,7 +97,7 @@ public class MainBotBrain extends MainBotBaseBrain {
                     return true;
                 }
             }
-         }
+        }
         return false;
     }
 
@@ -127,7 +122,7 @@ public class MainBotBrain extends MainBotBaseBrain {
             double distance = Math.sqrt(Math.pow(x - robotX, 2) + Math.pow(y - robotY, 2));
             if (distance > Parameters.bulletRange) {
                 this.shouldFire = false;
-                this.targetDirection = Math.atan2(y - robotY, x - robotX) +Math.PI;
+                this.targetDirection = Math.atan2(y - robotY, x - robotX) + Math.PI;
                 return false;
             }
             this.targetDirection = Math.atan2(y - robotY, x - robotX) + Math.PI;
@@ -161,7 +156,7 @@ public class MainBotBrain extends MainBotBaseBrain {
                 fetchAllMessages(),
                 msg -> msg.startsWith(this.TEAM_POS_MSG_SIGN, 0));
         messages.forEach(msg -> {
-            System.out.println("msg: " + msg );
+            System.out.println("msg: " + msg);
             String[] elements = parseTemmatesPosMessage(msg);
             double y = Double.parseDouble(elements[1]);
             double x = Double.parseDouble(elements[2]);
@@ -174,7 +169,7 @@ public class MainBotBrain extends MainBotBaseBrain {
         detectOpponents();
         updateTeammatesPositions();
         logTeammatesPositions();
-        //this.sendLogMessage("current state: " + this.currentState);
+        // this.sendLogMessage("current state: " + this.currentState);
         super.beforeEachStep();
     }
 
@@ -184,11 +179,9 @@ public class MainBotBrain extends MainBotBaseBrain {
             double[] pos = teammatesPositions.get(robot);
             logMessage += robot.name() + " x: " + pos[0] + " y: " + pos[1] + "\n";
         }
-        //sendLogMessage(logMessage);
+        // sendLogMessage(logMessage);
         sendLogMessage("x: " + robotX + " y: " + robotY);
     }
-
-    
 
 }
 

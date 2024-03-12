@@ -6,6 +6,7 @@ import robotsimulator.Brain;
 
 import static characteristics.IFrontSensorResult.Types.WALL;
 
+import java.util.Map;
 import java.util.Objects;
 
 import algorithms.aboubacarlyna.statemachine.interfaces.IState;
@@ -16,6 +17,8 @@ public abstract class BaseBrain extends Brain {
     protected enum Robots {
         MRUP, MRMIDDLE, MRBOTTOM, SRUP, SRBOTTOM
     };
+
+    protected Map<Robots, double[]> teammatesPositions;
 
     protected Robots currentRobot;
 
@@ -59,6 +62,15 @@ public abstract class BaseBrain extends Brain {
     }
 
     protected void afterEachStep() {
+        sendMyPositionToTeammates();
+    }
+
+    private void sendMyPositionToTeammates() {
+        String message = currentRobot + MSG_SEPARATOR
+                + TEAM_POS_MSG_SIGN + MSG_SEPARATOR
+                + robotY + MSG_SEPARATOR
+                + robotX;
+        broadcast(message);
     }
 
     @Override
@@ -80,7 +92,7 @@ public abstract class BaseBrain extends Brain {
     }
 
     protected boolean isSameDirection(double heading, double expectedDirection) {
-        return Math.abs(heading- normalize(expectedDirection)) < EPSILON;
+        return Math.abs(heading - normalize(expectedDirection)) < EPSILON;
     }
 
     private double normalize(double dir) {
