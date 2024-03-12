@@ -35,8 +35,7 @@ public abstract class BaseBrain extends Brain {
         currentState = buildStateMachine();
     }
 
-
-	protected abstract IState buildStateMachine();
+    protected abstract IState buildStateMachine();
 
     protected static double EPSILON = 0.05;
 
@@ -62,6 +61,11 @@ public abstract class BaseBrain extends Brain {
                 this.afterEachStep();
             }
         }
+    }
+
+    @Override
+    public double getHeading() {
+        return normalize(super.getHeading());
     }
 
     protected boolean isSameDirection(double heading, double expectedDirection) {

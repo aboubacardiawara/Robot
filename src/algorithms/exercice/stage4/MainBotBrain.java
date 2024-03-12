@@ -3,6 +3,7 @@ package algorithms.exercice.stage4;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.function.BooleanSupplier;
@@ -54,7 +55,7 @@ public class MainBotBrain extends BaseBrain {
         stopFiring.setDescription("stopFiring");
 
         turnLittleBitLeft.addNext(moveEast,
-                () -> isSameDirection(getHeading(), -(Math.random() - 0.5) * 2 + Math.PI / 4));
+                () -> isSameDirection(getHeading(), Parameters.EAST));
         turnLittleBitLeft.setStateAction(() -> {
             stepTurn(Parameters.Direction.LEFT);
         });
@@ -101,18 +102,36 @@ public class MainBotBrain extends BaseBrain {
         ArrayList<String> messages = filterMessages(
                 fetchAllMessages(),
                 msg -> msg.startsWith(this.OPPONENT_POS_MSG_SIGN, 0));
+        List<Position> positions = extractPositions(messages);
+        Position closestPosition = positions.stream().min((p1, p2) -> {
+            double d1 = Math.sqrt(Math.pow(p1.getX() - robotX, 2) + Math.pow(p1.getY() - robotY, 2));
+            double d2 = Math.sqrt(Math.pow(p2.getX() - robotX, 2) + Math.pow(p2.getY() - robotY, 2));
+            return Double.compare(d1, d2);
+        }).orElse(null);
 
-        if (!messages.isEmpty()) {
-            // int i = rn.nextInt(messages.size());
-            int i = 0;
-            String[] elements = parseOpponentsPosMessage(messages.get(i));
-            double y = Double.parseDouble(elements[0]);
-            double x = Double.parseDouble(elements[1]);
-            this.targetDirection = Math.atan2(y - robotY, x - robotX);
+        if (closestPosition != null) {
+            double y = closestPosition.getY();
+            double x = closestPosition.getX();
+            double distance = Math.sqrt(Math.pow(x - robotX, 2) + Math.pow(y - robotY, 2));
+            if (distance > Parameters.bulletRange) {
+                this.shouldFire = false;
+                this.targetDirection = Math.atan2(y - robotY, x - robotX) + Math.PI;
+                return false;
+            }
+            this.targetDirection = Math.atan2(y - robotY, x - robotX) + Math.PI;
             this.shouldFire = true;
             return true;
         }
         return false;
+    }
+
+    private List<Position> extractPositions(ArrayList<String> messages) {
+        return messages.stream().map(msg -> {
+            String[] elements = parseOpponentsPosMessage(msg);
+            double y = Double.parseDouble(elements[0]);
+            double x = Double.parseDouble(elements[1]);
+            return new Position(x, y);
+        }).collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
     }
 
     private String[] parseOpponentsPosMessage(String msg) {
@@ -167,4 +186,22 @@ public class MainBotBrain extends BaseBrain {
         }
     }
 
+}
+
+class Position {
+    private double x;
+    private double y;
+
+    public Position(double x, double y) {
+        this.x = x;
+        this.y = y;
+    }
+
+    public double getX() {
+        return x;
+    }
+
+    public double getY() {
+        return y;
+    }
 }
