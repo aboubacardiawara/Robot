@@ -54,4 +54,11 @@ public class SquareWalkBrainRedesigned extends BaseBrain {
         return initState;
     }
 
+
+    @Override
+    protected Robots identifyRobot() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'identifyRobot'");
+    }
+
 }

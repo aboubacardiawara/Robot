@@ -12,6 +12,13 @@ import algorithms.aboubacarlyna.statemachine.interfaces.IState;
 
 public abstract class BaseBrain extends Brain {
 
+    // main robot (up|middle|bottom) + secondary robot (up|bottom)
+    protected enum Robots {
+        MRUP, MRMIDDLE, MRBOTTOM, SRUP, SRBOTTOM
+    };
+
+    protected Robots currentRobot;
+
     protected double robotX;
     protected double robotY;
     protected IState currentState;
@@ -30,13 +37,16 @@ public abstract class BaseBrain extends Brain {
 
     @Override
     public void activate() {
+        currentRobot = identifyRobot();
         this.robotX = initialX();
         this.robotY = initialY();
         currentState = buildStateMachine();
+        sendLogMessage("I am " + currentRobot);
     }
 
+    protected abstract Robots identifyRobot();
 
-	protected abstract IState buildStateMachine();
+    protected abstract IState buildStateMachine();
 
     protected static double EPSILON = 0.1;
 
@@ -64,6 +74,7 @@ public abstract class BaseBrain extends Brain {
         }
     }
 
+    @Override
     public double getHeading() {
         return normalize(super.getHeading());
     }

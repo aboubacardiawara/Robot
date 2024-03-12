@@ -131,4 +131,10 @@ public class Stage3 extends BaseBrain {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'initialY'");
     }
+
+    @Override
+    protected Robots identifyRobot() {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'identifyRobot'");
+    }
 }

@@ -1,12 +1,11 @@
 package algorithms.aboubacarlyna.brains.core;
 
+import characteristics.IRadarResult;
 import characteristics.Parameters;
 
 public abstract class SecondaryBotBaseBrain extends BaseBrain {
 	
-	// secondary robot (up|bottom)
-    protected enum Robots {SRUP, SRBOTTOM};
-    protected Robots currentRobot;
+	// 
 
 	@Override
 	public void move() {
@@ -32,4 +31,18 @@ public abstract class SecondaryBotBaseBrain extends BaseBrain {
             return Parameters.teamASecondaryBot2InitY;
         }
     }
+
+
+    @Override
+    protected Robots identifyRobot() {
+        for (IRadarResult radarResult : detectRadar()) {
+            if (isSameDirection(radarResult.getObjectDirection(), Parameters.SOUTH)) {
+                if (radarResult.getObjectType() == IRadarResult.Types.TeamSecondaryBot){
+                    return Robots.SRUP;
+                }
+            }
+        }
+        return Robots.SRBOTTOM;
+    }
+
 }
