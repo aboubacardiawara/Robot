@@ -1,6 +1,7 @@
 package algorithms.exercice.stage4;
 
 import algorithms.aboubacarlyna.brains.core.SecondaryBotBaseBrain;
+import algorithms.aboubacarlyna.brains.core.dto.Const;
 import algorithms.aboubacarlyna.statemachine.impl.State;
 import algorithms.aboubacarlyna.statemachine.interfaces.IState;
 import characteristics.IRadarResult;
@@ -38,14 +39,14 @@ public class SecondaryBotBrain extends SecondaryBotBaseBrain {
 
 
     private String buildOpponentPosMessage(IRadarResult radarResult, double opponentPosX, double opponentPosY) {
-        return this.OPPONENT_POS_MSG_SIGN 
-        + this.MSG_SEPARATOR 
+        return Const.OPPONENT_POS_MSG_SIGN 
+        + Const.MSG_SEPARATOR 
         + opponentPosY 
-        + this.MSG_SEPARATOR 
+        + Const.MSG_SEPARATOR 
         + opponentPosX 
-        + this.MSG_SEPARATOR
-        + this.getHealth() 
-        + this.MSG_SEPARATOR
+        + Const.MSG_SEPARATOR
+        + getHealth() 
+        + Const.MSG_SEPARATOR
         + "secondary";
     }
 

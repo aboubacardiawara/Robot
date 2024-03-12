@@ -25,8 +25,13 @@ public class Position {
         return y;
     }
 
-    public double distance(Position position) {
+    public double distanceTo(Position position) {
         return Math.sqrt(Math.pow(position.getX() - x, 2) + Math.pow(position.getY() - y, 2));
+    }
+
+    @Override
+    public String toString() {
+        return "(" + x + ", " + y + ")";
     }
 
 }
