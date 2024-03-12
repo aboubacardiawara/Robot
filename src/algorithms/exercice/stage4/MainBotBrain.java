@@ -23,12 +23,14 @@ public class MainBotBrain extends BaseBrain {
     Random rn = new Random();
     protected Map<Robots, double[]> teammatesPositions;
     private boolean shouldFire = false;
+
+
     @Override
     public void move() {
         super.move();
         
         robotX += Parameters.teamAMainBotSpeed * Math.cos(getHeading());
-        robotY += Parameters.teamAMainBotSpeed * Math.sin(getHeading());             
+        robotY += Parameters.teamAMainBotSpeed * Math.sin(getHeading());
     }
 
     @Override
@@ -48,7 +50,7 @@ public class MainBotBrain extends BaseBrain {
         IState stopFiring = new State();
         stopFiring.setDescription("stopFiring");
 
-        turnLittleBitLeft.addNext(moveEast, () -> isSameDirection(getHeading(), -(Math.random() - 0.5)*2 - Math.PI / 4));
+        turnLittleBitLeft.addNext(moveEast, () -> isSameDirection(getHeading(), -Math.PI / 4));
         turnLittleBitLeft.setStateAction(() -> {
             stepTurn(Parameters.Direction.LEFT);
         });
@@ -67,15 +69,12 @@ public class MainBotBrain extends BaseBrain {
             move();
         });
 
-        /// qaund  le robot n'est plus dans la  meme direction que enmy (target direction il bouge)
         fireState.addNext(stopFiring, () -> !detectOpponents());  
         fireState.setStateAction(() -> {
-            for (IRadarResult radarResult : detectRadar()) {
                 // todo: si le robot tire vers un robot de son equipe ????)
-                if (shouldFire) {
+                if (shouldFire && !detecte_temmates_in_targetDirection()) {
                     fire(targetDirection);
                 }
-            }
         });
 
         stopFiring.addNext(fireState, () -> detectOpponents());
@@ -90,7 +89,6 @@ public class MainBotBrain extends BaseBrain {
         return messages.stream().filter(f).collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
     }
 
-
     private boolean detectOpponents() {
         ArrayList<String> messages = filterMessages(
             fetchAllMessages(),
@@ -98,10 +96,10 @@ public class MainBotBrain extends BaseBrain {
 
         if (!messages.isEmpty()) {
             int i = rn.nextInt(messages.size());
-            String[] elements = parseOpponentsPosMessage(messages.get(i));
-            double x = Double.parseDouble(elements[2]);
-            double y = Double.parseDouble(elements[1]);
-            this.targetDirection = Math.atan2(y - robotY, x - robotX)+Math.PI;
+            String[] elements = parseOpponentsPosMessage(messages.get(0));
+            double x = Double.parseDouble(elements[1]);
+            double y = Double.parseDouble(elements[0]);
+            this.targetDirection = Math.atan2(y - robotY, x - robotX);
             this.shouldFire = true;
             return true;
         }
@@ -158,6 +156,20 @@ public class MainBotBrain extends BaseBrain {
         } else {
             return Parameters.teamAMainBot3InitY;
         }
+    }
+
+    private boolean detecte_temmates_in_targetDirection() {
+        for (Map.Entry<Robots, double[]> teammatePosition : this.teammatesPositions.entrySet()) {
+           
+            double[] pos = teammatePosition.getValue();
+            double x = pos[0];
+            double y = pos[1];
+            double direction = Math.atan2(y - robotY, x - robotX);
+            if (isSameDirection(direction, targetDirection)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }
