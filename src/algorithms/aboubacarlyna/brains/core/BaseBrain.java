@@ -51,7 +51,7 @@ public abstract class BaseBrain extends Brain {
 
     protected abstract IState buildStateMachine();
 
-    protected static double EPSILON = 0.1;
+    protected static double EPSILON = 0.05;
 
     protected boolean wallDetected() {
         boolean res = detectFront().getObjectType() == WALL;
@@ -59,15 +59,15 @@ public abstract class BaseBrain extends Brain {
     }
 
     protected void beforeEachStep() {
-    }
-
-    protected void afterEachStep() {
         sendMyPositionToTeammates();
     }
 
+    protected void afterEachStep() {
+    }
+
     private void sendMyPositionToTeammates() {
-        String message = currentRobot + MSG_SEPARATOR
-                + TEAM_POS_MSG_SIGN + MSG_SEPARATOR
+        String message = TEAM_POS_MSG_SIGN + MSG_SEPARATOR
+                + currentRobot + MSG_SEPARATOR
                 + robotY + MSG_SEPARATOR
                 + robotX;
         broadcast(message);
@@ -115,6 +115,10 @@ public abstract class BaseBrain extends Brain {
     protected boolean isOpponentBot(IRadarResult radarResult) {
         return radarResult.getObjectType() == IRadarResult.Types.OpponentMainBot
                 || radarResult.getObjectType() == IRadarResult.Types.OpponentSecondaryBot;
+    }
+
+    protected void logRobotPosition() {
+        sendLogMessage("x: " + robotX + " y: " + robotY);
     }
 
 }

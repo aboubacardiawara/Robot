@@ -42,9 +42,7 @@ public class SecondaryBotBrain extends SecondaryBotBaseBrain {
         + this.MSG_SEPARATOR 
         + opponentPosY 
         + this.MSG_SEPARATOR 
-        + opponentPosX 
-        + this.MSG_SEPARATOR 
-        + radarResult.getObjectDirection();
+        + opponentPosX;
     }
 
 
@@ -53,6 +51,14 @@ public class SecondaryBotBrain extends SecondaryBotBaseBrain {
     @Override
     protected void afterEachStep() {
         sendLogMessage("x: " + robotX + " y: " + robotY);
+        super.afterEachStep();
+    }
+
+
+    @Override
+    protected void beforeEachStep() {
+        this.logRobotPosition();
+        super.beforeEachStep();
     }
 
 
