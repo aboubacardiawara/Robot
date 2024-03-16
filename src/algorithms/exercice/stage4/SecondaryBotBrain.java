@@ -18,8 +18,6 @@ public class SecondaryBotBrain extends SecondaryBotBaseBrain {
         initState.setStateAction(() -> {
 
             for (IRadarResult radarResult : detectRadar()) {
-                if (!isNotDead(radarResult))
-                    System.out.println("dead opponent !");
                 if (isOpponentBot(radarResult) && isNotDead(radarResult)) {
                     double opponentPosX = this.robotX
                             + radarResult.getObjectDistance() * Math.cos(radarResult.getObjectDirection());

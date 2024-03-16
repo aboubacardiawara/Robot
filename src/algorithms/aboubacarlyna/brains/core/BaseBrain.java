@@ -6,6 +6,10 @@ import robotsimulator.Brain;
 
 import static characteristics.IFrontSensorResult.Types.WALL;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
@@ -51,7 +55,13 @@ public abstract class BaseBrain extends Brain {
         this.robotX = initialX();
         this.robotY = initialY();
         currentState = buildStateMachine();
-        sendLogMessage("I am " + currentRobot);
+        exportGraphset();
+    }
+
+    /**
+     * create a file and write the graphset of the state machine in.
+     */
+    protected void exportGraphset() {
     }
 
     /**
@@ -84,8 +94,8 @@ public abstract class BaseBrain extends Brain {
                 + currentRobot + MSG_SEPARATOR
                 + robotY + MSG_SEPARATOR
                 + robotX + MSG_SEPARATOR
-                + this.getHealth()+ MSG_SEPARATOR
-                +"main";
+                + this.getHealth() + MSG_SEPARATOR
+                + "main";
         RobotState robotState = RobotState.of(message);
         broadcast(robotState.toString());
     }
@@ -116,7 +126,7 @@ public abstract class BaseBrain extends Brain {
         return Math.abs(heading - normalize(expectedDirection)) < epsilon;
     }
 
-    private double normalize(double dir) {
+    protected double normalize(double dir) {
         double res = dir;
         while (res < 0)
             res += 2 * Math.PI;

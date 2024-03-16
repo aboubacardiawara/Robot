@@ -6,6 +6,7 @@ import algorithms.aboubacarlyna.statemachine.AnyTransitionConditionMetException;
 
 public interface IState {
     boolean hasNext();
+
     IState next() throws AnyTransitionConditionMetException;
 
     void addNext(IState state, Supplier<Boolean> transitionCondition);
@@ -17,4 +18,6 @@ public interface IState {
     void performsAction();
 
     void setDescription(String tourneVersLeNord);
+
+    String dotify();
 }

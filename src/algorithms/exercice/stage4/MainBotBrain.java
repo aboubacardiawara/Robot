@@ -16,12 +16,15 @@ import algorithms.aboubacarlyna.brains.core.dto.RobotState;
 import algorithms.aboubacarlyna.statemachine.impl.State;
 import algorithms.aboubacarlyna.statemachine.interfaces.IState;
 import characteristics.Parameters;
+import characteristics.Parameters.Direction;
 
 public class MainBotBrain extends MainBotBaseBrain {
 
     private double targetDirection;
     private Position targetPosition;
     protected final int teammateRadius = 3;
+    protected double findALineOfFireStartAngle;
+    protected double findALineOfFireMoveCounter;
 
     Random rn = new Random();
     protected Map<Robots, RobotState> teammatesPositions;
@@ -45,8 +48,14 @@ public class MainBotBrain extends MainBotBaseBrain {
         fireState.setDescription("fireState");
         IState stopFiring = new State();
         stopFiring.setDescription("stopFiring");
-        IState findALineOfFire = new State();
-        findALineOfFire.setDescription("findALineOfFire");
+        IState findALineOfFireStateRotationStep0 = new State();
+        findALineOfFireStateRotationStep0.setDescription("findALineOfFirerotation_step_initialisation");
+        IState findALineOfFireStateRotationStep = new State();
+        findALineOfFireStateRotationStep.setDescription("findALineOfFire_45_rotation_step");
+        IState findALineOfFireStateMoveStep0 = new State();
+        findALineOfFireStateMoveStep0.setDescription("findALineOfFireMoveState_initialisation");
+        IState findALineOfFireStateMoveStep = new State();
+        findALineOfFireStateMoveStep.setDescription("findALineOfFire_move_step");
 
         turnLittleBitLeft.addNext(moveEast,
                 () -> isSameDirection(getHeading(), getHeading()));
@@ -68,20 +77,40 @@ public class MainBotBrain extends MainBotBaseBrain {
             move();
         });
 
-        /// qaund le robot n'est plus dans la meme direction que enmy (target direction
-        /// il bouge)
         fireState.addNext(stopFiring, () -> detectOpponents() == DetectionResultCode.NO_OPPONENT);
-        fireState.addNext(findALineOfFire, () -> detectOpponents() == DetectionResultCode.TEAMMATES_IN_LINE_OF_FIRE);
+        fireState.addNext(findALineOfFireStateRotationStep0,
+                () -> detectOpponents() == DetectionResultCode.TEAMMATES_IN_LINE_OF_FIRE);
         fireState.setStateAction(() -> {
-            // Todo: si le robot tire vers un robot de son equipe ????)
             if (shouldFire && !anyTeammatesLineOfFire()) {
                 fire(targetDirection);
             }
         });
 
-        findALineOfFire.addNext(fireState, () -> detectOpponents() == DetectionResultCode.OPPONENT_IN_LINE_OF_FIRE);
-        findALineOfFire.setStateAction(() -> {
-            System.out.println("trying to find a line of fire");
+        findALineOfFireStateRotationStep0.addNext(findALineOfFireStateRotationStep);
+        findALineOfFireStateRotationStep0.setStateAction(() -> {
+            findALineOfFireStartAngle = getHeading();
+        });
+
+        findALineOfFireStateRotationStep.addNext(findALineOfFireStateMoveStep0,
+                () -> isSameDirection(getHeading(), this.findALineOfFireStartAngle + (Math.PI / 4), true));
+
+        findALineOfFireStateRotationStep.setStateAction(() -> {
+            if (currentRobot == Robots.MRBOTTOM) {
+                stepTurn(Parameters.Direction.RIGHT);
+            } else {
+                stepTurn(Parameters.Direction.LEFT);
+            }
+        });
+
+        findALineOfFireStateMoveStep0.addNext(findALineOfFireStateMoveStep);
+        findALineOfFireStateMoveStep0.setStateAction(() -> {
+            findALineOfFireMoveCounter = 10;
+        });
+
+        findALineOfFireStateMoveStep.addNext(fireState, () -> findALineOfFireMoveCounter == 0);
+        findALineOfFireStateMoveStep.setStateAction(() -> {
+            move();
+            findALineOfFireMoveCounter--;
         });
 
         stopFiring.addNext(fireState, () -> detectOpponents() != DetectionResultCode.NO_OPPONENT);
@@ -92,13 +121,43 @@ public class MainBotBrain extends MainBotBaseBrain {
         return turnLittleBitLeft;
     }
 
+    protected boolean isSameDirection(double heading, double expectedDirection, boolean log) {
+        if (log)
+            System.out.println("heading: " + normalize(heading) + " target: " + normalize(expectedDirection));
+        return super.isSameDirection(heading, expectedDirection);
+    }
+
+    protected Direction fastWayToTurn(double targetDirection) {
+        double diff = targetDirection - this.getHeading();
+        if (diff > Math.PI) {
+            return Parameters.Direction.LEFT;
+        } else if (diff < -Math.PI) {
+            return Parameters.Direction.RIGHT;
+        } else if (diff > 0) {
+            return Parameters.Direction.RIGHT;
+        } else {
+            return Parameters.Direction.LEFT;
+        }
+    }
+
+    private double findAngleToTurn() {
+        boolean anyTeammatesUp = currentRobot == Robots.MRBOTTOM;
+        if (anyTeammatesUp) {
+            return (Math.PI / 4);
+        } else {
+            System.out.println(this.findALineOfFireStartAngle - (Math.PI / 4));
+            return this.findALineOfFireStartAngle - (Math.PI / 4);
+        }
+    }
+
     private boolean anyTeammatesLineOfFire() {
         for (Robots robot : teammatesPositions.keySet()) {
             RobotState robotState = teammatesPositions.get(robot);
             Position pos = robotState.getPosition();
             if (robotState.getHealth() >= 0) {
                 if (!pos.equals(Position.of(robotX, robotY)) && isInInLineOfFire(pos, teammateRadius)) {
-                    logger.info("<<" + robot.name() + " is in line of fire >> ~" + currentRobot.name());
+                    // logger.info("<<" + robot.name() + " is in line of fire >> ~" +
+                    // currentRobot.name());
                     return true;
                 }
             }
@@ -236,7 +295,24 @@ public class MainBotBrain extends MainBotBaseBrain {
     @Override
     protected void afterEachStep() {
         super.afterEachStep();
-        sendLogMessage(leftSide ? "left" : "right");
+        sendLogMessage(currentState.toString());
+    }
+
+    @Override
+    protected void exportGraphset() {
+        super.exportGraphset();
+        String fileName = "mainBotStateMachine.dot";
+        String graph = currentState.dotify();
+        writeToFile(fileName, graph);
+    }
+
+    private void writeToFile(String fileName, String graph) {
+        try (java.io.PrintWriter writer = new java.io.PrintWriter(fileName)) {
+            writer.println(graph);
+            writer.close();
+        } catch (java.io.FileNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
 }
