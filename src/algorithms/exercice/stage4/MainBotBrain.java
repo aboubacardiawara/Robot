@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.function.Predicate;
 
@@ -47,7 +46,7 @@ public class MainBotBrain extends MainBotBaseBrain {
         stopFiring.setDescription("stopFiring");
 
         turnLittleBitLeft.addNext(moveEast,
-                () -> isSameDirection(getHeading(), Parameters.EAST));
+                () -> isSameDirection(getHeading(), getHeading()));
         turnLittleBitLeft.setStateAction(() -> {
             stepTurn(Parameters.Direction.LEFT);
         });
@@ -181,6 +180,12 @@ public class MainBotBrain extends MainBotBaseBrain {
         }
         // sendLogMessage(logMessage);
         sendLogMessage("x: " + robotX + " y: " + robotY);
+    }
+
+    @Override
+    protected void afterEachStep() {
+        super.afterEachStep();
+        sendLogMessage(leftSide ? "left" : "right");
     }
 
 }

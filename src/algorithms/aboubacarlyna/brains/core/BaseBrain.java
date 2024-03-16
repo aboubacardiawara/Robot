@@ -13,6 +13,8 @@ import algorithms.aboubacarlyna.statemachine.interfaces.IState;
 
 public abstract class BaseBrain extends Brain {
 
+    protected boolean leftSide = true;
+
     // main robot (up|middle|bottom) + secondary robot (up|bottom)
     protected enum Robots {
         MRUP, MRMIDDLE, MRBOTTOM, SRUP, SRBOTTOM
@@ -40,11 +42,19 @@ public abstract class BaseBrain extends Brain {
 
     @Override
     public void activate() {
+        identifyInitSide();
         currentRobot = identifyRobot();
         this.robotX = initialX();
         this.robotY = initialY();
         currentState = buildStateMachine();
         sendLogMessage("I am " + currentRobot);
+    }
+
+    /**
+     * Detect which side our robot is in the field.
+     */
+    protected void identifyInitSide() {
+        this.leftSide = isSameDirection(getHeading(), Parameters.EAST);
     }
 
     protected abstract Robots identifyRobot();

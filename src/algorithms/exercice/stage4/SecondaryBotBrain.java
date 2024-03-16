@@ -4,7 +4,6 @@ import algorithms.aboubacarlyna.brains.core.SecondaryBotBaseBrain;
 import algorithms.aboubacarlyna.statemachine.impl.State;
 import algorithms.aboubacarlyna.statemachine.interfaces.IState;
 import characteristics.IRadarResult;
-import characteristics.Parameters;
 
 public class SecondaryBotBrain extends SecondaryBotBaseBrain {
     Boolean detected = false;
@@ -23,37 +22,32 @@ public class SecondaryBotBrain extends SecondaryBotBaseBrain {
                             + radarResult.getObjectDistance() * Math.sin(radarResult.getObjectDirection());
                     String message = buildOpponentPosMessage(radarResult, opponentPosX, opponentPosY);
                     broadcast(message);
-                    
-                    //moveBack();
+
+                    // moveBack();
                     detected = true;
                 }
             }
             if (!detected) {
                 move();
             }
-            
+
         });
         return initState;
     }
 
-
     private String buildOpponentPosMessage(IRadarResult radarResult, double opponentPosX, double opponentPosY) {
-        return this.OPPONENT_POS_MSG_SIGN 
-        + this.MSG_SEPARATOR 
-        + opponentPosY 
-        + this.MSG_SEPARATOR 
-        + opponentPosX 
-        + this.MSG_SEPARATOR 
-        + radarResult.getObjectDirection();
+        return this.OPPONENT_POS_MSG_SIGN
+                + this.MSG_SEPARATOR
+                + opponentPosY
+                + this.MSG_SEPARATOR
+                + opponentPosX
+                + this.MSG_SEPARATOR
+                + radarResult.getObjectDirection();
     }
-
-
-
 
     @Override
     protected void afterEachStep() {
         sendLogMessage("x: " + robotX + " y: " + robotY);
     }
-
 
 }
