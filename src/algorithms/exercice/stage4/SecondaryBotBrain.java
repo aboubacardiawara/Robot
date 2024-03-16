@@ -1,5 +1,7 @@
 package algorithms.exercice.stage4;
 
+import static characteristics.IFrontSensorResult.Types.Wreck;
+
 import algorithms.aboubacarlyna.brains.core.SecondaryBotBaseBrain;
 import algorithms.aboubacarlyna.brains.core.dto.Const;
 import algorithms.aboubacarlyna.statemachine.impl.State;
@@ -16,7 +18,9 @@ public class SecondaryBotBrain extends SecondaryBotBaseBrain {
         initState.setStateAction(() -> {
 
             for (IRadarResult radarResult : detectRadar()) {
-                if (isOpponentBot(radarResult)) {
+                if (!isNotDead(radarResult))
+                    System.out.println("dead opponent !");
+                if (isOpponentBot(radarResult) && isNotDead(radarResult)) {
                     double opponentPosX = this.robotX
                             + radarResult.getObjectDistance() * Math.cos(radarResult.getObjectDirection());
                     double opponentPosY = this.robotY
@@ -34,6 +38,10 @@ public class SecondaryBotBrain extends SecondaryBotBaseBrain {
 
         });
         return initState;
+    }
+
+    private boolean isNotDead(IRadarResult radarResult) {
+        return radarResult.getObjectType() != IRadarResult.Types.Wreck;
     }
 
     private String buildOpponentPosMessage(IRadarResult radarResult, double opponentPosX, double opponentPosY) {

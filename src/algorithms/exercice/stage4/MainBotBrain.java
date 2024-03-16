@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 import java.util.function.Predicate;
 
@@ -20,6 +21,7 @@ public class MainBotBrain extends MainBotBaseBrain {
 
     private double targetDirection;
     private Position targetPosition;
+    protected final int teammateRadius = 3;
 
     Random rn = new Random();
     protected Map<Robots, RobotState> teammatesPositions;
@@ -39,10 +41,12 @@ public class MainBotBrain extends MainBotBaseBrain {
         turnTowardOpponent.setDescription("turnTowardOpponent");
         IState moveBackState = new State();
         moveBackState.setDescription("moveBackState");
-        IState fireState = new State();
+        IState fireState = new State(2);
         fireState.setDescription("fireState");
         IState stopFiring = new State();
         stopFiring.setDescription("stopFiring");
+        IState findALineOfFire = new State();
+        findALineOfFire.setDescription("findALineOfFire");
 
         turnLittleBitLeft.addNext(moveEast,
                 () -> isSameDirection(getHeading(), getHeading()));
@@ -50,14 +54,14 @@ public class MainBotBrain extends MainBotBaseBrain {
             stepTurn(Parameters.Direction.LEFT);
         });
 
-        moveEast.addNext(turnTowardOpponent, () -> detectOpponents());
+        moveEast.addNext(turnTowardOpponent, () -> detectOpponents() != DetectionResultCode.NO_OPPONENT);
         moveEast.setStateAction(() -> {
             move();
         });
 
         turnTowardOpponent.addNext(fireState, () -> isSameDirection(getHeading(), targetDirection));
         turnTowardOpponent.setStateAction(() -> {
-            stepTurn(Parameters.Direction.RIGHT);
+            stepTurn(Parameters.Direction.LEFT);
         });
 
         moveBackState.setStateAction(() -> {
@@ -66,7 +70,8 @@ public class MainBotBrain extends MainBotBaseBrain {
 
         /// qaund le robot n'est plus dans la meme direction que enmy (target direction
         /// il bouge)
-        fireState.addNext(stopFiring, () -> !detectOpponents());
+        fireState.addNext(stopFiring, () -> detectOpponents() == DetectionResultCode.NO_OPPONENT);
+        fireState.addNext(findALineOfFire, () -> detectOpponents() == DetectionResultCode.TEAMMATES_IN_LINE_OF_FIRE);
         fireState.setStateAction(() -> {
             // Todo: si le robot tire vers un robot de son equipe ????)
             if (shouldFire && !anyTeammatesLineOfFire()) {
@@ -74,7 +79,12 @@ public class MainBotBrain extends MainBotBaseBrain {
             }
         });
 
-        stopFiring.addNext(fireState, () -> detectOpponents());
+        findALineOfFire.addNext(fireState, () -> detectOpponents() == DetectionResultCode.OPPONENT_IN_LINE_OF_FIRE);
+        findALineOfFire.setStateAction(() -> {
+            System.out.println("trying to find a line of fire");
+        });
+
+        stopFiring.addNext(fireState, () -> detectOpponents() != DetectionResultCode.NO_OPPONENT);
         stopFiring.setStateAction(() -> {
             this.shouldFire = false;
         });
@@ -87,7 +97,7 @@ public class MainBotBrain extends MainBotBaseBrain {
             RobotState robotState = teammatesPositions.get(robot);
             Position pos = robotState.getPosition();
             if (robotState.getHealth() >= 0) {
-                if (!pos.equals(Position.of(robotX, robotY)) && isInInLineOfFire(pos, 5)) {
+                if (!pos.equals(Position.of(robotX, robotY)) && isInInLineOfFire(pos, teammateRadius)) {
                     logger.info("<<" + robot.name() + " is in line of fire >> ~" + currentRobot.name());
                     return true;
                 }
@@ -99,6 +109,9 @@ public class MainBotBrain extends MainBotBaseBrain {
     private boolean isInInLineOfFire(Position teammatePosition, int r) {
         double x1 = robotX;
         double y1 = robotY;
+        if (targetPosition == null) {
+            return false;
+        }
         double x2 = targetPosition.getX();
         double y2 = targetPosition.getY();
         double x3 = teammatePosition.getX();
@@ -114,43 +127,68 @@ public class MainBotBrain extends MainBotBaseBrain {
         return messages.stream().filter(f).collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
     }
 
-    private boolean detectOpponents() {
+    /**
+     * Check if there is any opponent in the radar
+     * 
+     * @return 0 if there is no opponent in the radar or they are out of line of
+     *         fire
+     *         1 if there is at least one opponent in the radar and it is in the
+     *         line of fire
+     *         2 if the opponents are out of line of fire because of teammates
+     *         being in line of fire.s
+     */
+    private int detectOpponents() {
         ArrayList<String> messages = filterMessages(
                 this.receivedMessages,
                 msg -> msg.startsWith(Const.OPPONENT_POS_MSG_SIGN, 0));
         List<Position> positions = extractPositions(messages);
-        Position closestPos = candidatEnemyToShot(positions);
+        Optional<Position> optionalPosition = candidatEnemyToShot(positions);
 
-        if (closestPos != null) {
+        if (optionalPosition.isPresent()) {
+            Position closestPos = optionalPosition.get();
             double distance = closestPos.distanceTo(Position.of(robotX, robotY));
             this.targetPosition = closestPos;
             this.targetDirection = Math.atan2(closestPos.getY() - robotY, closestPos.getX() - robotX);
             if (distance > Parameters.bulletRange) {
                 this.shouldFire = false;
-                return false;
+                return DetectionResultCode.OPPONENT_OUT_OF_LINE_OF_FIRE;
             } else {
                 this.shouldFire = true;
-                return true;
+                return DetectionResultCode.OPPONENT_IN_LINE_OF_FIRE;
+            }
+        } else {
+            boolean noOpponent = positions.size() == 0;
+            if (noOpponent)
+                return DetectionResultCode.NO_OPPONENT;
+            else {
+                return DetectionResultCode.TEAMMATES_IN_LINE_OF_FIRE;
             }
         }
-        return false;
     }
 
     /**
      * Pick a candidate to shot among the list of positions
-     * - First strategy: the closest to the robot
-     * - TODO Enhancement: we choose the closest one outside the line of fire of
-     * teammates
+     * 
+     * @implNote First strategy: the closest to the robot
+     * @implNote TODO Enhancement: we choose the closest one outside the line of
+     *           fire of
+     *           teammates
      * 
      * @param positions
      * @return
      */
-    private Position candidatEnemyToShot(List<Position> positions) {
-        return positions.stream().min((p1, p2) -> {
+    private Optional<Position> candidatEnemyToShot(List<Position> positions) {
+        List<Position> outOfLineOfFire = new ArrayList<Position>();
+        for (Position pos : positions) {
+            if (!anyTeammatesLineOfFire()) {
+                outOfLineOfFire.add(pos);
+            }
+        }
+        return outOfLineOfFire.stream().min((p1, p2) -> {
             double d1 = p1.distanceTo(Position.of(robotX, robotY));
             double d2 = p2.distanceTo(Position.of(robotX, robotY));
             return Double.compare(d1, d2);
-        }).orElse(null);
+        }).map(Optional::of).orElse(Optional.empty());
     }
 
     private List<Position> extractPositions(ArrayList<String> messages) {
@@ -201,4 +239,14 @@ public class MainBotBrain extends MainBotBaseBrain {
         sendLogMessage(leftSide ? "left" : "right");
     }
 
+}
+
+/**
+ * DetectionResultCode
+ */
+class DetectionResultCode {
+    public static final int NO_OPPONENT = 0;
+    public static final int OPPONENT_IN_LINE_OF_FIRE = 1;
+    public static final int OPPONENT_OUT_OF_LINE_OF_FIRE = 2;
+    public static final int TEAMMATES_IN_LINE_OF_FIRE = 3;
 }
