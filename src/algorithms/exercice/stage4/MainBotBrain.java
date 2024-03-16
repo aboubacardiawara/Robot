@@ -28,101 +28,29 @@ public class MainBotBrain extends MainBotBaseBrain {
     protected double rotationCount;
 
     Random rn = new Random();
-    protected Map<Robots, RobotState> teammatesPositions;
-    private boolean shouldFire = false;
+    protected Map<Robots, RobotState> teammatesPositions = new HashMap<>();
 
     private ArrayList<String> receivedMessages;
 
     @Override
     protected IState buildStateMachine() {
-        Random rn = new Random();
-        this.teammatesPositions = new HashMap<Robots, RobotState>();
-        IState turnLittleBitLeft = new State();
-        turnLittleBitLeft.setDescription("turnLittleBitLeft");
-        IState moveEast = new State();
-        moveEast.setDescription("moveEast");
-        IState turnTowardOpponent = new State();
-        turnTowardOpponent.setDescription("turnTowardOpponent");
-        IState moveBackState = new State();
-        moveBackState.setDescription("moveBackState");
-        IState fireState = new State(2);
-        fireState.setDescription("fireState");
-        IState stopFiring = new State();
-        stopFiring.setDescription("stopFiring");
-        IState findALineOfFireStateRotationStep0 = new State();
-        findALineOfFireStateRotationStep0.setDescription("findALineOfFirerotation_step_initialisation");
-        IState findALineOfFireStateRotationStep = new State();
-        findALineOfFireStateRotationStep.setDescription("findALineOfFire_45_rotation_step");
-        IState findALineOfFireStateMoveStep0 = new State();
-        findALineOfFireStateMoveStep0.setDescription("findALineOfFireMoveState_initialisation");
-        IState findALineOfFireStateMoveStep = new State();
-        findALineOfFireStateMoveStep.setDescription("findALineOfFire_move_step");
+        
+        IState STMoveEast = new State();
+        STMoveEast.setDescription("Move East");
+        IState STStartFire = new State();
+        STStartFire.setDescription("Start Fire");
+        IState STStopFire = new State();
+        STStopFire.setDescription("Stop Fire"); 
+        
+        
+        STMoveEast.addNext(STStartFire, () -> detectOpponents() != DetectionResultCode.ANY_OPPONENT);
+        STMoveEast.setStateAction(() -> move());
+        
+        STStartFire.addNext(STStopFire, () -> detectOpponents() == DetectionResultCode.ANY_OPPONENT);
+        STStartFire.setStateAction(() -> fire(targetDirection));
 
-        turnLittleBitLeft.addNext(moveEast,
-                () -> isSameDirection(getHeading(), getHeading()));
-        turnLittleBitLeft.setStateAction(() -> {
-            stepTurn(Parameters.Direction.LEFT);
-        });
-
-        moveEast.addNext(fireState, () -> {
-            int res = detectOpponents();
-            System.out.println("res: " + res + " " + (DetectionResultCode.NO_OPPONENT));
-            return res != DetectionResultCode.NO_OPPONENT;
-            
-            });
-        moveEast.setStateAction(() -> {
-            move();
-        });
-
-
-        moveBackState.setStateAction(() -> {
-            move();
-        });
-
-        fireState.addNext(stopFiring, () -> detectOpponents() == DetectionResultCode.NO_OPPONENT);
-        fireState.addNext(findALineOfFireStateRotationStep0,
-                () -> detectOpponents() == DetectionResultCode.TEAMMATES_IN_LINE_OF_FIRE);
-        fireState.setStateAction(() -> {
-            if (shouldFire && !anyTeammatesLineOfFire()) {
-                fire(targetDirection);
-            }
-        });
-
-        findALineOfFireStateRotationStep0.addNext(findALineOfFireStateRotationStep);
-        findALineOfFireStateRotationStep0.setStateAction(() -> {
-            findALineOfFireStartAngle = getHeading();
-            rotationCount = 10;
-        });
-
-        findALineOfFireStateRotationStep.addNext(findALineOfFireStateMoveStep0,
-                () -> rotationCount == 0);
-
-        findALineOfFireStateRotationStep.setStateAction(() -> {
-            rotationCount--;
-            if (currentRobot == Robots.MRBOTTOM) {
-                stepTurn(Parameters.Direction.RIGHT);
-            } else {
-                stepTurn(Parameters.Direction.LEFT);
-            }
-        });
-
-        findALineOfFireStateMoveStep0.addNext(findALineOfFireStateMoveStep);
-        findALineOfFireStateMoveStep0.setStateAction(() -> {
-            findALineOfFireMoveCounter = 10;
-        });
-
-        findALineOfFireStateMoveStep.addNext(fireState, () -> findALineOfFireMoveCounter == 0);
-        findALineOfFireStateMoveStep.setStateAction(() -> {
-            move();
-            findALineOfFireMoveCounter--;
-        });
-
-        stopFiring.addNext(fireState, () -> detectOpponents() != DetectionResultCode.NO_OPPONENT);
-        stopFiring.setStateAction(() -> {
-            this.shouldFire = false;
-        });
-
-        return turnLittleBitLeft;
+        STStopFire.addNext(STStartFire, () -> detectOpponents() != DetectionResultCode.ANY_OPPONENT);
+        return STMoveEast;
     }
 
     protected boolean isSameDirection(double heading, double expectedDirection, boolean log) {
@@ -160,8 +88,8 @@ public class MainBotBrain extends MainBotBaseBrain {
             Position pos = robotState.getPosition();
             if (robotState.getHealth() >= 0) {
                 if (!pos.equals(Position.of(robotX, robotY)) && isInInLineOfFire(pos, teammateRadius)) {
-                    // logger.info("<<" + robot.name() + " is in line of fire >> ~" +
-                    // currentRobot.name());
+                    logger.info("<<" + robot.name() + " is in line of fire >> ~" +
+                    currentRobot.name());
                     return true;
                 }
             }
@@ -213,16 +141,14 @@ public class MainBotBrain extends MainBotBaseBrain {
             this.targetPosition = closestPos;
             this.targetDirection = Math.atan2(closestPos.getY() - robotY, closestPos.getX() - robotX);
             if (distance > Parameters.bulletRange) {
-                this.shouldFire = false;
                 return DetectionResultCode.OPPONENT_OUT_OF_LINE_OF_FIRE;
             } else {
-                this.shouldFire = true;
                 return DetectionResultCode.OPPONENT_IN_LINE_OF_FIRE;
             }
         } else {
             boolean noOpponent = positions.size() == 0;
             if (noOpponent)
-                return DetectionResultCode.NO_OPPONENT;
+                return DetectionResultCode.ANY_OPPONENT;
             else {
                 return DetectionResultCode.TEAMMATES_IN_LINE_OF_FIRE;
             }
@@ -248,7 +174,7 @@ public class MainBotBrain extends MainBotBaseBrain {
                 outOfLineOfFire.add(pos);
             }
         }
-        
+
         return outOfLineOfFire.stream().min((p1, p2) -> {
             double d1 = p1.distanceTo(Position.of(robotX, robotY));
             double d2 = p2.distanceTo(Position.of(robotX, robotY));
@@ -258,7 +184,7 @@ public class MainBotBrain extends MainBotBaseBrain {
 
     private List<Position> extractPositions(ArrayList<String> messages) {
         return messages.stream().map(msg -> {
-            String[] elements = parseOpponentsPosMessage(msg);
+             String[] elements = parseOpponentsPosMessage(msg);
             double y = Double.valueOf(elements[1]);
             double x = Double.valueOf(elements[2]);
             return new Position(x, y);
@@ -327,7 +253,7 @@ public class MainBotBrain extends MainBotBaseBrain {
  * DetectionResultCode
  */
 class DetectionResultCode {
-    public static final int NO_OPPONENT = 0;
+    public static final int ANY_OPPONENT = 0;
     public static final int OPPONENT_IN_LINE_OF_FIRE = 1;
     public static final int OPPONENT_OUT_OF_LINE_OF_FIRE = 2;
     public static final int TEAMMATES_IN_LINE_OF_FIRE = 3;

@@ -1,5 +1,6 @@
 package algorithms.aboubacarlyna.statemachine.impl;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -11,7 +12,7 @@ public class State implements IState {
 
     protected IState[] nextStates;
     protected Supplier<Boolean>[] transitionConditions;
-    protected Runnable transitionAction;
+    protected Optional<Runnable> transitionAction;
     protected int cpt = 0;
     protected String description;
     protected Optional<Runnable> setUpAction = Optional.empty();
@@ -22,6 +23,7 @@ public class State implements IState {
         this.nextStates = new IState[stateCount];
         this.transitionConditions = new Supplier[stateCount];
         this.executionCOunt = 0;
+        this.transitionAction = Optional.empty();
     }
 
     public State() {
@@ -78,7 +80,8 @@ public class State implements IState {
 
     @Override
     public void setStateAction(Runnable transitionAction) {
-        this.transitionAction = transitionAction;
+        if (transitionAction != null)
+            this.transitionAction = Optional.of(transitionAction);
     }
 
     @Override
@@ -87,7 +90,8 @@ public class State implements IState {
             setUp();
         }
         executionCOunt++;
-        this.transitionAction.run();
+        this.transitionAction.ifPresent(Runnable::run);
+        
     }
 
     @Override
@@ -118,10 +122,12 @@ public class State implements IState {
 
     @Override
     public void setUp(Runnable setUpAction) {
+        this.setUpAction = Optional.of(setUpAction);
 
     }
 
     @Override
     public void setDown(Runnable tearDownAction) {
+        this.tearDownAction = Optional.of(tearDownAction);
     }
 }
