@@ -9,6 +9,10 @@ public interface IState {
 
     IState next() throws AnyTransitionConditionMetException;
 
+    void setUp(Runnable setUpAction);
+
+    void setDown(Runnable tearDownAction);
+
     void addNext(IState state, Supplier<Boolean> transitionCondition);
 
     void addNext(IState state);

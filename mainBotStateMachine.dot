@@ -1,7 +1,6 @@
 digraph G {
 turnLittleBitLeft -> moveEast [label="?"];
-moveEast -> turnTowardOpponent [label="?"];
-turnTowardOpponent -> fireState [label="?"];
+moveEast -> fireState [label="?"];
 fireState -> stopFiring [label="?"];
 stopFiring -> fireState [label="?"];
 fireState -> findALineOfFirerotation_step_initialisation [label="?"];

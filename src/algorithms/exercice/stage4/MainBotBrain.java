@@ -25,6 +25,7 @@ public class MainBotBrain extends MainBotBaseBrain {
     protected final int teammateRadius = 3;
     protected double findALineOfFireStartAngle;
     protected double findALineOfFireMoveCounter;
+    protected double rotationCount;
 
     Random rn = new Random();
     protected Map<Robots, RobotState> teammatesPositions;
@@ -63,15 +64,16 @@ public class MainBotBrain extends MainBotBaseBrain {
             stepTurn(Parameters.Direction.LEFT);
         });
 
-        moveEast.addNext(turnTowardOpponent, () -> detectOpponents() != DetectionResultCode.NO_OPPONENT);
+        moveEast.addNext(fireState, () -> {
+            int res = detectOpponents();
+            System.out.println("res: " + res + " " + (DetectionResultCode.NO_OPPONENT));
+            return res != DetectionResultCode.NO_OPPONENT;
+            
+            });
         moveEast.setStateAction(() -> {
             move();
         });
 
-        turnTowardOpponent.addNext(fireState, () -> isSameDirection(getHeading(), targetDirection));
-        turnTowardOpponent.setStateAction(() -> {
-            stepTurn(Parameters.Direction.LEFT);
-        });
 
         moveBackState.setStateAction(() -> {
             move();
@@ -89,12 +91,14 @@ public class MainBotBrain extends MainBotBaseBrain {
         findALineOfFireStateRotationStep0.addNext(findALineOfFireStateRotationStep);
         findALineOfFireStateRotationStep0.setStateAction(() -> {
             findALineOfFireStartAngle = getHeading();
+            rotationCount = 10;
         });
 
         findALineOfFireStateRotationStep.addNext(findALineOfFireStateMoveStep0,
-                () -> isSameDirection(getHeading(), this.findALineOfFireStartAngle + (Math.PI / 4), true));
+                () -> rotationCount == 0);
 
         findALineOfFireStateRotationStep.setStateAction(() -> {
+            rotationCount--;
             if (currentRobot == Robots.MRBOTTOM) {
                 stepTurn(Parameters.Direction.RIGHT);
             } else {
@@ -237,12 +241,14 @@ public class MainBotBrain extends MainBotBaseBrain {
      * @return
      */
     private Optional<Position> candidatEnemyToShot(List<Position> positions) {
+        // filter: position pour les quelles il n'y a pas de coéquipiers dans la ligne de tir.
         List<Position> outOfLineOfFire = new ArrayList<Position>();
         for (Position pos : positions) {
             if (!anyTeammatesLineOfFire()) {
                 outOfLineOfFire.add(pos);
             }
         }
+        
         return outOfLineOfFire.stream().min((p1, p2) -> {
             double d1 = p1.distanceTo(Position.of(robotX, robotY));
             double d2 = p2.distanceTo(Position.of(robotX, robotY));

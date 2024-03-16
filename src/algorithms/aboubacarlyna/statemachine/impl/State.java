@@ -1,7 +1,7 @@
 package algorithms.aboubacarlyna.statemachine.impl;
 
+import java.util.Optional;
 import java.util.Set;
-import java.util.Stack;
 import java.util.function.Supplier;
 
 import algorithms.aboubacarlyna.statemachine.AnyTransitionConditionMetException;
@@ -14,11 +14,14 @@ public class State implements IState {
     protected Runnable transitionAction;
     protected int cpt = 0;
     protected String description;
+    protected Optional<Runnable> setUpAction = Optional.empty();
+    protected Optional<Runnable> tearDownAction = Optional.empty();
+    protected int executionCOunt;
 
-    @SuppressWarnings("unchecked")
     public State(int stateCount) {
         this.nextStates = new IState[stateCount];
-        this.transitionConditions = (Supplier<Boolean>[]) new Supplier<?>[stateCount];
+        this.transitionConditions = new Supplier[stateCount];
+        this.executionCOunt = 0;
     }
 
     public State() {
@@ -45,10 +48,20 @@ public class State implements IState {
 
         for (int i = 0; i < transitionConditions.length; i++) {
             if (transitionConditions[i].get()) {
+                setDown();
                 return nextStates[i];
             }
         }
         throw new AnyTransitionConditionMetException();
+    }
+
+    void setDown() {
+        tearDownAction.ifPresent(Runnable::run);
+        this.executionCOunt = 0;
+    }
+
+    void setUp() {
+        setUpAction.ifPresent(Runnable::run);
     }
 
     @Override
@@ -70,21 +83,16 @@ public class State implements IState {
 
     @Override
     public void performsAction() {
+        if (executionCOunt == 0) {
+            setUp();
+        }
+        executionCOunt++;
         this.transitionAction.run();
     }
 
     @Override
     public String toString() {
         return this.description;
-    }
-
-    private boolean anyConditionMeet() {
-        for (int i = 0; i < transitionConditions.length; i++) {
-            if (transitionConditions[i].get()) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Override
@@ -106,5 +114,14 @@ public class State implements IState {
             }
         }
         return sb.toString();
+    }
+
+    @Override
+    public void setUp(Runnable setUpAction) {
+
+    }
+
+    @Override
+    public void setDown(Runnable tearDownAction) {
     }
 }
