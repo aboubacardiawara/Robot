@@ -119,11 +119,7 @@ public class MainBotBrain extends MainBotBaseBrain {
                 this.receivedMessages,
                 msg -> msg.startsWith(Const.OPPONENT_POS_MSG_SIGN, 0));
         List<Position> positions = extractPositions(messages);
-        Position closestPos = positions.stream().min((p1, p2) -> {
-            double d1 = p1.distanceTo(Position.of(robotX, robotY));
-            double d2 = p2.distanceTo(Position.of(robotX, robotY));
-            return Double.compare(d1, d2);
-        }).orElse(null);
+        Position closestPos = candidatEnemyToShot(positions);
 
         if (closestPos != null) {
             double distance = closestPos.distanceTo(Position.of(robotX, robotY));
@@ -138,6 +134,23 @@ public class MainBotBrain extends MainBotBaseBrain {
             }
         }
         return false;
+    }
+
+    /**
+     * Pick a candidate to shot among the list of positions
+     * - First strategy: the closest to the robot
+     * - TODO Enhancement: we choose the closest one outside the line of fire of
+     * teammates
+     * 
+     * @param positions
+     * @return
+     */
+    private Position candidatEnemyToShot(List<Position> positions) {
+        return positions.stream().min((p1, p2) -> {
+            double d1 = p1.distanceTo(Position.of(robotX, robotY));
+            double d2 = p2.distanceTo(Position.of(robotX, robotY));
+            return Double.compare(d1, d2);
+        }).orElse(null);
     }
 
     private List<Position> extractPositions(ArrayList<String> messages) {
