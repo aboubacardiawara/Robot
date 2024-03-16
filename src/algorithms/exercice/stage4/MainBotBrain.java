@@ -15,6 +15,7 @@ import algorithms.aboubacarlyna.brains.core.dto.RobotState;
 import algorithms.aboubacarlyna.statemachine.impl.State;
 import algorithms.aboubacarlyna.statemachine.interfaces.IState;
 import characteristics.Parameters;
+
 public class MainBotBrain extends MainBotBaseBrain {
 
     private double targetDirection;
@@ -25,7 +26,6 @@ public class MainBotBrain extends MainBotBaseBrain {
     private boolean shouldFire = false;
 
     private ArrayList<String> receivedMessages;
-
 
     @Override
     protected IState buildStateMachine() {
@@ -45,7 +45,7 @@ public class MainBotBrain extends MainBotBaseBrain {
         stopFiring.setDescription("stopFiring");
 
         turnLittleBitLeft.addNext(moveEast,
-                () -> isSameDirection(getHeading(), Parameters.EAST));
+                () -> isSameDirection(getHeading(), getHeading()));
         turnLittleBitLeft.setStateAction(() -> {
             stepTurn(Parameters.Direction.LEFT);
         });
@@ -68,10 +68,10 @@ public class MainBotBrain extends MainBotBaseBrain {
         /// il bouge)
         fireState.addNext(stopFiring, () -> !detectOpponents());
         fireState.setStateAction(() -> {
-                // Todo: si le robot tire vers un robot de son equipe ????)
-                if (shouldFire && !thereIsTeammatesInTargetDirection()){
-                    fire(targetDirection);
-                }
+            // Todo: si le robot tire vers un robot de son equipe ????)
+            if (shouldFire && !thereIsTeammatesInTargetDirection()) {
+                fire(targetDirection);
+            }
         });
 
         stopFiring.addNext(fireState, () -> detectOpponents());
@@ -81,17 +81,16 @@ public class MainBotBrain extends MainBotBaseBrain {
 
         return turnLittleBitLeft;
     }
-    
 
     private boolean thereIsTeammatesInTargetDirection() {
-         for (Robots robot : teammatesPositions.keySet()) {
+        for (Robots robot : teammatesPositions.keySet()) {
             RobotState robotState = teammatesPositions.get(robot);
             Position pos = robotState.getPosition();
-            
+
             System.out.println("state: " + robotState);
             double distance = pos.distanceTo(Position.of(robotX, robotY));
 
-            if ( robotState.getHealth()>=0) {
+            if (robotState.getHealth() >= 0) {
                 double direction = Math.atan2(pos.getY() - robotY, pos.getX() - robotX);
                 if (isSameDirection(direction, targetDirection, 0)) {
                     sendLogMessage(robot.name() + " is in the target direction");
@@ -120,8 +119,8 @@ public class MainBotBrain extends MainBotBaseBrain {
         if (closestPos != null) {
             System.out.println("closest pos: " + closestPos);
             double distance = closestPos.distanceTo(Position.of(robotX, robotY));
-            this.targetDirection =  Math.atan2(closestPos.getY() - robotY, closestPos.getX() - robotX);
-            if (distance > Parameters.bulletRange ) {
+            this.targetDirection = Math.atan2(closestPos.getY() - robotY, closestPos.getX() - robotX);
+            if (distance > Parameters.bulletRange) {
                 this.shouldFire = false;
                 return false;
             } else {
@@ -165,11 +164,6 @@ public class MainBotBrain extends MainBotBaseBrain {
         super.beforeEachStep();
     }
 
-    @Override
-    protected void afterEachStep() {
-        this.sendLogMessage("current state: " + this.currentState);
-    }
-
     private void logTeammatesPositions() {
         String logMessage = "";
         for (Robots robot : teammatesPositions.keySet()) {
@@ -179,5 +173,10 @@ public class MainBotBrain extends MainBotBaseBrain {
         sendLogMessage(logMessage);
     }
 
-}
+    @Override
+    protected void afterEachStep() {
+        super.afterEachStep();
+        sendLogMessage(leftSide ? "left" : "right");
+    }
 
+}

@@ -5,7 +5,6 @@ import algorithms.aboubacarlyna.brains.core.dto.Const;
 import algorithms.aboubacarlyna.statemachine.impl.State;
 import algorithms.aboubacarlyna.statemachine.interfaces.IState;
 import characteristics.IRadarResult;
-import characteristics.Parameters;
 
 public class SecondaryBotBrain extends SecondaryBotBaseBrain {
     Boolean detected = false;
@@ -24,34 +23,30 @@ public class SecondaryBotBrain extends SecondaryBotBaseBrain {
                             + radarResult.getObjectDistance() * Math.sin(radarResult.getObjectDirection());
                     String message = buildOpponentPosMessage(radarResult, opponentPosX, opponentPosY);
                     broadcast(message);
-                    
-                    //moveBack();
+
+                    // moveBack();
                     detected = true;
                 }
             }
             if (!detected) {
                 move();
             }
-            
+
         });
         return initState;
     }
 
-
     private String buildOpponentPosMessage(IRadarResult radarResult, double opponentPosX, double opponentPosY) {
-        return Const.OPPONENT_POS_MSG_SIGN 
-        + Const.MSG_SEPARATOR 
-        + opponentPosY 
-        + Const.MSG_SEPARATOR 
-        + opponentPosX 
-        + Const.MSG_SEPARATOR
-        + getHealth() 
-        + Const.MSG_SEPARATOR
-        + "secondary";
+        return Const.OPPONENT_POS_MSG_SIGN
+                + Const.MSG_SEPARATOR
+                + opponentPosY
+                + Const.MSG_SEPARATOR
+                + opponentPosX
+                + Const.MSG_SEPARATOR
+                + getHealth()
+                + Const.MSG_SEPARATOR
+                + "secondary";
     }
-
-
-
 
     @Override
     protected void afterEachStep() {
@@ -59,12 +54,10 @@ public class SecondaryBotBrain extends SecondaryBotBaseBrain {
         super.afterEachStep();
     }
 
-
     @Override
     protected void beforeEachStep() {
         this.logRobotPosition();
         super.beforeEachStep();
     }
-
 
 }
