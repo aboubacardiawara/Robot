@@ -8,11 +8,14 @@ import static characteristics.IFrontSensorResult.Types.WALL;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.logging.Logger;
 
 import algorithms.aboubacarlyna.brains.core.dto.RobotState;
 import algorithms.aboubacarlyna.statemachine.interfaces.IState;
 
 public abstract class BaseBrain extends Brain {
+
+    protected Logger logger = Logger.getLogger("BaseBrain");
 
     protected boolean leftSide = true;
 

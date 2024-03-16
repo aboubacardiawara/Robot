@@ -19,8 +19,8 @@ import characteristics.Parameters;
 public class MainBotBrain extends MainBotBaseBrain {
 
     private double targetDirection;
+    private Position targetPosition;
 
-    protected Robots currentRobot;
     Random rn = new Random();
     protected Map<Robots, RobotState> teammatesPositions;
     private boolean shouldFire = false;
@@ -69,7 +69,7 @@ public class MainBotBrain extends MainBotBaseBrain {
         fireState.addNext(stopFiring, () -> !detectOpponents());
         fireState.setStateAction(() -> {
             // Todo: si le robot tire vers un robot de son equipe ????)
-            if (shouldFire && !thereIsTeammatesInTargetDirection()) {
+            if (shouldFire && !anyTeammatesLineOfFire()) {
                 fire(targetDirection);
             }
         });
@@ -82,23 +82,32 @@ public class MainBotBrain extends MainBotBaseBrain {
         return turnLittleBitLeft;
     }
 
-    private boolean thereIsTeammatesInTargetDirection() {
+    private boolean anyTeammatesLineOfFire() {
         for (Robots robot : teammatesPositions.keySet()) {
             RobotState robotState = teammatesPositions.get(robot);
             Position pos = robotState.getPosition();
-
-            System.out.println("state: " + robotState);
-            double distance = pos.distanceTo(Position.of(robotX, robotY));
-
             if (robotState.getHealth() >= 0) {
-                double direction = Math.atan2(pos.getY() - robotY, pos.getX() - robotX);
-                if (isSameDirection(direction, targetDirection, 0)) {
-                    sendLogMessage(robot.name() + " is in the target direction");
+                if (!pos.equals(Position.of(robotX, robotY)) && isInInLineOfFire(pos, 5)) {
+                    logger.info("<<" + robot.name() + " is in line of fire >> ~" + currentRobot.name());
                     return true;
                 }
             }
         }
         return false;
+    }
+
+    private boolean isInInLineOfFire(Position teammatePosition, int r) {
+        double x1 = robotX;
+        double y1 = robotY;
+        double x2 = targetPosition.getX();
+        double y2 = targetPosition.getY();
+        double x3 = teammatePosition.getX();
+        double y3 = teammatePosition.getY();
+        double numerator = Math.abs((y2 - y1) * x3 - (x2 - x1) * y3 + x2 * y1 - y2 * x1);
+        double denominator = Math.sqrt(Math.pow(y2 - y1, 2) + Math.pow(x2 - x1, 2));
+        double distance = numerator / denominator;
+
+        return distance <= r;
     }
 
     private ArrayList<String> filterMessages(ArrayList<String> messages, Predicate<String> f) {
@@ -117,8 +126,8 @@ public class MainBotBrain extends MainBotBaseBrain {
         }).orElse(null);
 
         if (closestPos != null) {
-            System.out.println("closest pos: " + closestPos);
             double distance = closestPos.distanceTo(Position.of(robotX, robotY));
+            this.targetPosition = closestPos;
             this.targetDirection = Math.atan2(closestPos.getY() - robotY, closestPos.getX() - robotX);
             if (distance > Parameters.bulletRange) {
                 this.shouldFire = false;

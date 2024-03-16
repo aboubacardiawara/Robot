@@ -34,4 +34,14 @@ public class Position {
         return "(" + x + ", " + y + ")";
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this)
+            return true;
+        if (!(obj instanceof Position))
+            return false;
+        Position position = (Position) obj;
+        return position.getX() == x && position.getY() == y;
+    }
+
 }
