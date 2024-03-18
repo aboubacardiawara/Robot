@@ -1,5 +1,7 @@
 package algorithms.aboubacarlyna.statemachine.impl;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -10,19 +12,18 @@ import algorithms.aboubacarlyna.statemachine.interfaces.IState;
 
 public class State implements IState {
 
-    protected IState[] nextStates;
-    protected Supplier<Boolean>[] transitionConditions;
+    protected List<IState> nextStates;
+    protected List<Supplier<Boolean>> transitionConditions;
     protected Optional<Runnable> transitionAction;
     protected int cpt = 0;
     protected String description;
     protected Optional<Runnable> setUpAction = Optional.empty();
     protected Optional<Runnable> tearDownAction = Optional.empty();
-    protected int executionCOunt;
+    
 
     public State(int stateCount) {
-        this.nextStates = new IState[stateCount];
-        this.transitionConditions = new Supplier[stateCount];
-        this.executionCOunt = 0;
+        this.nextStates = new ArrayList<>();
+        this.transitionConditions = new ArrayList<>();
         this.transitionAction = Optional.empty();
     }
 
@@ -37,8 +38,8 @@ public class State implements IState {
 
     @Override
     public boolean hasNext() {
-        for (int i = 0; i < nextStates.length; i++) {
-            if (nextStates[i] != null) {
+        for (int i = 0; i < nextStates.size(); i++) {
+            if (transitionConditions.get(i).get()) {
                 return true;
             }
         }
@@ -48,29 +49,26 @@ public class State implements IState {
     @Override
     public IState next() throws AnyTransitionConditionMetException {
 
-        for (int i = 0; i < transitionConditions.length; i++) {
-            if (transitionConditions[i].get()) {
-                setDown();
-                return nextStates[i];
+        for (int i = 0; i < transitionConditions.size(); i++) {
+            if (transitionConditions.get(i).get()) {
+                return nextStates.get(i);
             }
         }
         throw new AnyTransitionConditionMetException();
     }
 
-    void setDown() {
-        tearDownAction.ifPresent(Runnable::run);
-        this.executionCOunt = 0;
-    }
 
-    void setUp() {
+    @Override
+    public void setUp() {
         setUpAction.ifPresent(Runnable::run);
     }
 
     @Override
     public void addNext(IState state, Supplier<Boolean> transitionCondition) {
-        transitionConditions[cpt] = transitionCondition;
-        nextStates[cpt] = state;
-        cpt++;
+        if (state != null) {
+            this.nextStates.add(state);
+            this.transitionConditions.add(transitionCondition);
+        }
     }
 
     @Override
@@ -86,12 +84,7 @@ public class State implements IState {
 
     @Override
     public void performsAction() {
-        if (executionCOunt == 0) {
-            setUp();
-        }
-        executionCOunt++;
         this.transitionAction.ifPresent(Runnable::run);
-        
     }
 
     @Override
@@ -105,19 +98,7 @@ public class State implements IState {
     }
 
     public String dotifyAux(State state, Set<State> visited) {
-        String sb = "";
-        if (visited.contains(state)) {
-            return "";
-        }
-        visited.add(state);
-        for (int i = 0; i < state.nextStates.length; i++) {
-            if (state.nextStates[i] != null) {
-                sb += state.toString() + " -> " + state.nextStates[i].toString() + " [label=\""
-                        + "?" + "\"];\n";
-                sb += dotifyAux((State) state.nextStates[i], visited);
-            }
-        }
-        return sb.toString();
+        return "SHOULD BE IMPLEMENTED !!!";
     }
 
     @Override
@@ -127,7 +108,12 @@ public class State implements IState {
     }
 
     @Override
-    public void setDown(Runnable tearDownAction) {
+    public void tearDown(Runnable tearDownAction) {
         this.tearDownAction = Optional.of(tearDownAction);
+    }
+
+    @Override
+    public void tearDown() {
+        tearDownAction.ifPresent(Runnable::run);
     }
 }

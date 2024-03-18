@@ -22,6 +22,9 @@ public class MainBotBrain extends MainBotBaseBrain {
 
     private double targetDirection;
     private Position targetPosition;
+    protected double randWalkDirection;
+    protected int randWalkMoveCount;
+    protected Position rendezVousPosition;
     protected final int teammateRadius = 3;
     protected double findALineOfFireStartAngle;
     protected double findALineOfFireMoveCounter;
@@ -34,28 +37,62 @@ public class MainBotBrain extends MainBotBaseBrain {
 
     @Override
     protected IState buildStateMachine() {
-        
-        IState STMoveEast = new State();
-        STMoveEast.setDescription("Move East");
+        // random walk state
+        IState STRandomWalk = new State();
+        STRandomWalk.setDescription("Random Walk");
+        IState STRandomDirection = new State();
+        STRandomDirection.setDescription("Choose Random Direction");
+        IState STRandomMoveCount = new State();
+        STRandomMoveCount.setDescription("Choose Random Move Count");
+        STRandomWalk.addNext(STRandomDirection);
+
+        // fight states
         IState STStartFire = new State();
         STStartFire.setDescription("Start Fire");
-        IState STStopFire = new State();
-        STStopFire.setDescription("Stop Fire"); 
-        
-        
-        STMoveEast.addNext(STStartFire, () -> detectOpponents() != DetectionResultCode.ANY_OPPONENT);
-        STMoveEast.setStateAction(() -> move());
-        
-        STStartFire.addNext(STStopFire, () -> detectOpponents() == DetectionResultCode.ANY_OPPONENT);
-        STStartFire.setStateAction(() -> fire(targetDirection));
 
-        STStopFire.addNext(STStartFire, () -> detectOpponents() != DetectionResultCode.ANY_OPPONENT);
-        return STMoveEast;
+        // rendez-vous state
+        IState STGoToRendezVousPositionTurn = new State();
+        STGoToRendezVousPositionTurn.setDescription("Turn toward rendez-vous position");
+        IState STGoToRendezVousPositionMove = new State();
+        STGoToRendezVousPositionMove.setDescription("Move to rendez-vous position");
+        
+        STGoToRendezVousPositionTurn.addNext(STGoToRendezVousPositionMove, () -> isSameDirection(getHeading(), targetDirection));
+        STGoToRendezVousPositionMove.addNext(STStartFire, ()-> fireConditionMeet());
+        STGoToRendezVousPositionTurn.setStateAction(() -> {
+            targetDirection = normalize(targetDirection);
+            stepTurn(fastWayToTurn(Math.atan2(targetPosition.getY() - robotY, targetPosition.getX() - robotX)));
+        });
+        STGoToRendezVousPositionMove.setStateAction(() -> move());
+        
+        STRandomDirection.setUp(() -> randWalkDirection = rn.nextDouble() * 2 * Math.PI);
+        STRandomDirection.addNext(STRandomMoveCount, () -> isSameDirection(getHeading(), randWalkDirection));
+        STRandomDirection.setStateAction(() ->  stepTurn(fastWayToTurn(randWalkDirection)));
+
+        STRandomMoveCount.setUp(() -> randWalkMoveCount = rn.nextInt(100, 500) + 1);
+        STRandomMoveCount.addNext(STRandomDirection,  () -> randWalkMoveCount == 0 || collisionWithTeammatesOrWall());
+        STRandomMoveCount.addNext(STGoToRendezVousPositionTurn,  () -> detectOpponent() != DetectionResultCode.ANY_OPPONENT);
+
+        STRandomMoveCount.setStateAction(()-> {move(); this.randWalkMoveCount--;});
+       
+        STStartFire.addNext(STRandomWalk, () -> detectOpponent() == DetectionResultCode.ANY_OPPONENT);
+        STStartFire.setStateAction(() -> fire(normalize(targetDirection)));
+        return STRandomWalk;
+    }
+
+    private boolean fireConditionMeet() {
+        double distance = this.targetPosition.distanceTo(Position.of(robotX, robotY));
+        boolean opponentOnSight = detectOpponents().size() > 0;
+        if (opponentOnSight) targetDirection = getHeading();
+        return distance < Parameters.bulletRange || opponentOnSight;
+    }
+
+    private boolean collisionWithTeammatesOrWall() {
+        return  this.detectWall() || this.temmateDetected();
     }
 
     protected boolean isSameDirection(double heading, double expectedDirection, boolean log) {
-        if (log)
-            System.out.println("heading: " + normalize(heading) + " target: " + normalize(expectedDirection));
+        //if (log)
+            //System.out.println("heading: " + normalize(heading) + " target: " + normalize(expectedDirection));
         return super.isSameDirection(heading, expectedDirection);
     }
 
@@ -77,7 +114,7 @@ public class MainBotBrain extends MainBotBaseBrain {
         if (anyTeammatesUp) {
             return (Math.PI / 4);
         } else {
-            System.out.println(this.findALineOfFireStartAngle - (Math.PI / 4));
+            // System.out.println(this.findALineOfFireStartAngle - (Math.PI / 4));
             return this.findALineOfFireStartAngle - (Math.PI / 4);
         }
     }
@@ -88,8 +125,8 @@ public class MainBotBrain extends MainBotBaseBrain {
             Position pos = robotState.getPosition();
             if (robotState.getHealth() >= 0) {
                 if (!pos.equals(Position.of(robotX, robotY)) && isInInLineOfFire(pos, teammateRadius)) {
-                    logger.info("<<" + robot.name() + " is in line of fire >> ~" +
-                    currentRobot.name());
+                    // logger.info("<<" + robot.name() + " is in line of fire >> ~" +
+                    // currentRobot.name());
                     return true;
                 }
             }
@@ -128,7 +165,7 @@ public class MainBotBrain extends MainBotBaseBrain {
      *         2 if the opponents are out of line of fire because of teammates
      *         being in line of fire.s
      */
-    private int detectOpponents() {
+    private int detectOpponent() {
         ArrayList<String> messages = filterMessages(
                 this.receivedMessages,
                 msg -> msg.startsWith(Const.OPPONENT_POS_MSG_SIGN, 0));
@@ -209,7 +246,7 @@ public class MainBotBrain extends MainBotBaseBrain {
     @Override
     protected void beforeEachStep() {
         this.receivedMessages = fetchAllMessages();
-        detectOpponents();
+        detectOpponent();
         updateTeammatesPositions();
         logRobotPosition();
         super.beforeEachStep();

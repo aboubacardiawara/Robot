@@ -1,5 +1,2 @@
 digraph G {
-Move East -> Start Fire [label="?"];
-Start Fire -> Stop Fire [label="?"];
-Stop Fire -> Start Fire [label="?"];
-}
+SHOULD BE IMPLEMENTED !!!}

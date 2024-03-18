@@ -1,20 +1,23 @@
 package algorithms.aboubacarlyna.brains.core;
 
+import characteristics.IFrontSensorResult;
 import characteristics.IRadarResult;
 import characteristics.Parameters;
 import robotsimulator.Brain;
-
+import characteristics.IFrontSensorResult.Types;
 import static characteristics.IFrontSensorResult.Types.WALL;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 
 import algorithms.aboubacarlyna.brains.core.dto.RobotState;
+import algorithms.aboubacarlyna.statemachine.AnyTransitionConditionMetException;
 import algorithms.aboubacarlyna.statemachine.interfaces.IState;
 
 public abstract class BaseBrain extends Brain {
@@ -22,6 +25,8 @@ public abstract class BaseBrain extends Brain {
     protected Logger logger = Logger.getLogger("BaseBrain");
 
     protected boolean leftSide = true;
+
+    private int stateCounter = 0;
 
     // main robot (up|middle|bottom) + secondary robot (up|bottom)
     public enum Robots {
@@ -46,6 +51,12 @@ public abstract class BaseBrain extends Brain {
 
     protected double initialY() {
         return 0;
+    }
+
+    protected boolean temmateDetected() {
+        Types objectType = detectFront().getObjectType();
+        return objectType == IFrontSensorResult.Types.TeamMainBot 
+            || objectType == IFrontSensorResult.Types.TeamSecondaryBot;
     }
 
     @Override
@@ -78,8 +89,12 @@ public abstract class BaseBrain extends Brain {
     protected static double EPSILON = 0.05;
 
     protected boolean wallDetected() {
-        boolean res = detectFront().getObjectType() == WALL;
+        boolean res = detectWall();
         return res;
+    }
+
+    protected boolean detectWall() {
+        return detectFront().getObjectType() == WALL;
     }
 
     protected void beforeEachStep() {
@@ -104,11 +119,15 @@ public abstract class BaseBrain extends Brain {
     public void step() {
         if (!Objects.isNull(currentState)) {
             try {
+                if (this.stateCounter == 0) currentState.setUp();
                 currentState = currentState.next();
-            } catch (Exception e) {
+                currentState.tearDown();
+                this.stateCounter = 0;
+            } catch (AnyTransitionConditionMetException e) {
                 this.beforeEachStep();
                 currentState.performsAction();
                 this.afterEachStep();
+                this.stateCounter++;
             }
         }
     }
@@ -123,7 +142,7 @@ public abstract class BaseBrain extends Brain {
     }
 
     protected boolean isSameDirection(double heading, double expectedDirection, double epsilon) {
-        return Math.abs(heading - normalize(expectedDirection)) < epsilon;
+        return Math.abs(normalize(heading) - normalize(expectedDirection)) < epsilon;
     }
 
     protected double normalize(double dir) {
@@ -150,6 +169,14 @@ public abstract class BaseBrain extends Brain {
 
     protected void logRobotPosition() {
         sendLogMessage("x: " + robotX + " y: " + robotY);
+    }
+
+    protected List<IRadarResult> detectOpponents() {
+        return detectRadar().stream().filter(result -> this.isOpponentBot(result) && isNotDead(result)).toList();
+    }
+
+    protected boolean isNotDead(IRadarResult radarResult) {
+        return radarResult.getObjectType() != IRadarResult.Types.Wreck;
     }
 
 }

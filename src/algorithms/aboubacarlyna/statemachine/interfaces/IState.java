@@ -11,7 +11,11 @@ public interface IState {
 
     void setUp(Runnable setUpAction);
 
-    void setDown(Runnable tearDownAction);
+    void tearDown(Runnable tearDownAction);
+
+    void setUp();
+
+    void tearDown();
 
     void addNext(IState state, Supplier<Boolean> transitionCondition);
 
