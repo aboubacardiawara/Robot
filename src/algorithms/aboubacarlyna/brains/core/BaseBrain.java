@@ -5,6 +5,8 @@ import characteristics.IRadarResult;
 import characteristics.Parameters;
 import robotsimulator.Brain;
 import characteristics.IFrontSensorResult.Types;
+import characteristics.Parameters.Direction;
+
 import static characteristics.IFrontSensorResult.Types.WALL;
 
 import java.io.BufferedWriter;
@@ -177,6 +179,23 @@ public abstract class BaseBrain extends Brain {
 
     protected boolean isNotDead(IRadarResult radarResult) {
         return radarResult.getObjectType() != IRadarResult.Types.Wreck;
+    }
+
+    protected Direction fastWayToTurn(double targetDirection) {
+        double diff = targetDirection - this.getHeading();
+        if (diff > Math.PI) {
+            return Parameters.Direction.LEFT;
+        } else if (diff < -Math.PI) {
+            return Parameters.Direction.RIGHT;
+        } else if (diff > 0) {
+            return Parameters.Direction.RIGHT;
+        } else {
+            return Parameters.Direction.LEFT;
+        }
+    }
+
+    protected boolean collisionWithTeammatesOrWall() {
+        return  this.detectWall() || this.temmateDetected();
     }
 
 }

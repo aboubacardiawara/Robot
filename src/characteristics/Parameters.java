@@ -99,7 +99,7 @@ public class Parameters {
         // ---TEAM-B-PARAMETERS---//
         // -----------------------//
         public static final String teamBName = "Fantom Danger";
-        public static final String teamBMainBotBrainClassName = "algorithms.RandomFire"; // class
+        public static final String teamBMainBotBrainClassName = "algorithms.Combinaison"; // class
                                                                                                            // given by
                                                                                                            // name; is
         // supposed
@@ -134,7 +134,7 @@ public class Parameters {
                                                          // coordinate
                                                          // reference
 
-        public static final String teamBSecondaryBotBrainClassName = "algorithms.RandomFire"; // class
+        public static final String teamBSecondaryBotBrainClassName = "algorithms.Combinaison"; // class
                                                                                                                      // given
                                                                                                                      // by
         // name; is

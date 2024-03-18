@@ -1,6 +1,7 @@
 package algorithms.exercice.stage4;
 
 import java.util.List;
+import java.util.Random;
 
 import algorithms.aboubacarlyna.brains.core.SecondaryBotBaseBrain;
 import algorithms.aboubacarlyna.brains.core.dto.Const;
@@ -9,47 +10,43 @@ import algorithms.aboubacarlyna.statemachine.interfaces.IState;
 import characteristics.IFrontSensorResult;
 import characteristics.IFrontSensorResult.Types;
 import characteristics.IRadarResult;
-import characteristics.Parameters;
 
 public class SecondaryBotBrain extends SecondaryBotBaseBrain {
     Boolean collisionDetected = false;
     protected double targetHeading;
     private int moveBackCount;
     private boolean opponentDetected = false;
+    private double randomDirection;
+    private double randomMoveCount;
+    private Random rand = new Random();
 
     @Override
     protected IState buildStateMachine() {
-        IState STTurnLeft = new State(2);
-        STTurnLeft.setDescription("TURN LEFT");
-        IState STMove = new State(2);
-        STMove.setDescription("MOVE");
-        IState STTurnRight = new State();
-        STTurnRight.setDescription("TURN RIGHT");
-        IState goBack = new State(2);
-        goBack.setDescription("GO BACK");
-
-        STTurnLeft.setUp(() -> { this.targetHeading = getHeading()-(Math.PI/2); });
-        STTurnLeft.addNext(STMove, () -> isSameDirection(targetHeading, getHeading(), 0.1));
-        STTurnLeft.addNext(STTurnRight, () -> collisionDetected);
-        STTurnLeft.setStateAction(() -> this.turnLeft());
-
-
-        STMove.addNext(STTurnRight, () -> detectWall());
-        STMove.setStateAction(() -> {
-            if (!opponentDetected) move();
+        // init state
+        IState STRandomWalker = new State();
+        IState STRandomDirection = new State();
+        STRandomDirection.setDescription("Random Direction");
+        STRandomDirection.setUp(() -> this.randomDirection = Math.random() * 2 * Math.PI);
+        STRandomDirection.setStateAction(() -> {
+            stepTurn(fastWayToTurn(this.randomDirection));
         });
-        
-        STTurnRight.setUp(() -> this.targetHeading = getHeading()+(Math.PI/2));
-        STTurnRight.addNext(STMove, () -> isSameDirection(targetHeading, getHeading()));
-        
-        STTurnRight.setStateAction(() -> this.turnRight());
 
-         
-        
-        return STTurnLeft;
+        IState STRandomMove = new State();
+        STRandomMove.setDescription("Random Move");
+        STRandomMove.setUp(() -> this.randomMoveCount = this.rand.nextInt(400, 500));
+        STRandomMove.setStateAction(() -> {
+            this.move();
+            this.randomMoveCount--;
+        });
+
+
+        // connect states
+        STRandomWalker.addNext(STRandomDirection);
+        STRandomDirection.addNext(STRandomMove, () -> isSameDirection(getHeading(), this.randomDirection));
+        STRandomMove.addNext(STRandomWalker, () -> this.randomMoveCount == 0 || collisionWithTeammatesOrWall());
+
+        return STRandomWalker;
     }
-
-    
 
     private String buildOpponentPosMessage(IRadarResult radarResult, double opponentPosX, double opponentPosY) {
         return Const.OPPONENT_POS_MSG_SIGN
@@ -62,8 +59,6 @@ public class SecondaryBotBrain extends SecondaryBotBaseBrain {
                 + Const.MSG_SEPARATOR
                 + "secondary";
     }
-
-
 
     @Override
     protected void beforeEachStep() {
