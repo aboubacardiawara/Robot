@@ -14,8 +14,6 @@ import characteristics.IRadarResult;
 public class SecondaryBotBrain extends SecondaryBotBaseBrain {
     Boolean collisionDetected = false;
     protected double targetHeading;
-    private int moveBackCount;
-    private boolean opponentDetected = false;
     private double randomDirection;
     private double randomMoveCount;
     private Random rand = new Random();
@@ -33,17 +31,16 @@ public class SecondaryBotBrain extends SecondaryBotBaseBrain {
 
         IState STRandomMove = new State();
         STRandomMove.setDescription("Random Move");
-        STRandomMove.setUp(() -> this.randomMoveCount = this.rand.nextInt(400, 500));
+        STRandomMove.setUp(() -> this.randomMoveCount = this.rand.nextInt(500, 1000));
         STRandomMove.setStateAction(() -> {
             this.move();
             this.randomMoveCount--;
         });
 
-
         // connect states
         STRandomWalker.addNext(STRandomDirection);
         STRandomDirection.addNext(STRandomMove, () -> isSameDirection(getHeading(), this.randomDirection));
-        STRandomMove.addNext(STRandomWalker, () -> this.randomMoveCount == 0 || collisionWithTeammatesOrWall());
+        STRandomMove.addNext(STRandomWalker, () -> this.randomMoveCount == 0 || obstacleDetected());
 
         return STRandomWalker;
     }
@@ -64,37 +61,12 @@ public class SecondaryBotBrain extends SecondaryBotBaseBrain {
     protected void beforeEachStep() {
         this.logRobotPosition();
         sendOpponentPositions();
-        detectCollision();
         super.beforeEachStep();
     }
 
-    private void detectCollision() {
-        if (temmateDetected() && this.moveBackCount == 0) {
-            System.out.println("TEMMATE DETECTED");
-            collisionDetected = true;
-            IState colisionResolver = new State();
-            colisionResolver.setDescription("COLISION RESOLVER");
-            colisionResolver.setUp(() -> this.moveBackCount = 10);
-            colisionResolver.addNext(this.currentState, () -> this.moveBackCount == 10);
-            colisionResolver.setStateAction(() -> {
-                this.moveBack();
-                this.moveBackCount++;
-            });
-            this.currentState = colisionResolver;
-        }
-       
-    }
-
-    private boolean bulletDetected() {
-        Types objectType = detectFront().getObjectType();
-        return objectType == IFrontSensorResult.Types.BULLET;
-    }
-
     private void sendOpponentPositions() {
-        opponentDetected = false;
         List<IRadarResult> opponents = detectOpponents();
         for (IRadarResult radarResult : opponents) {
-            opponentDetected = true;
             double opponentPosX = this.robotX
                     + radarResult.getObjectDistance() * Math.cos(radarResult.getObjectDirection());
             double opponentPosY = this.robotY
@@ -107,8 +79,6 @@ public class SecondaryBotBrain extends SecondaryBotBaseBrain {
     @Override
     protected void afterEachStep() {
         super.afterEachStep();
-        sendLogMessage(this.currentState.toString());
     }
-    
 
 }

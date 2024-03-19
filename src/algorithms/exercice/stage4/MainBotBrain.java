@@ -34,6 +34,7 @@ public class MainBotBrain extends MainBotBaseBrain {
     protected Map<Robots, RobotState> teammatesPositions = new HashMap<>();
 
     private ArrayList<String> receivedMessages = new ArrayList<>();
+
     @Override
     protected IState buildStateMachine() {
         // random walk state
@@ -54,35 +55,47 @@ public class MainBotBrain extends MainBotBaseBrain {
         STGoToRendezVousPositionTurn.setDescription("Turn toward rendez-vous position");
         IState STGoToRendezVousPositionMove = new State();
         STGoToRendezVousPositionMove.setDescription("Move to rendez-vous position");
-        
-        STGoToRendezVousPositionTurn.addNext(STGoToRendezVousPositionMove, () -> isSameDirection(getHeading(), targetDirection, 0.1));
-        STGoToRendezVousPositionMove.addNext(STStartFire, ()-> fireConditionMeet());
+
+        STGoToRendezVousPositionTurn.addNext(STGoToRendezVousPositionMove,
+                () -> isSameDirection(getHeading(), targetDirection, 0.1));
+        STGoToRendezVousPositionMove.addNext(STStartFire, () -> fireConditionMeet());
         STGoToRendezVousPositionTurn.setStateAction(() -> {
             targetDirection = normalize(targetDirection);
             stepTurn(fastWayToTurn(Math.atan2(targetPosition.getY() - robotY, targetPosition.getX() - robotX)));
-            System.out.println("random walk: "+ randWalkDirection + " "+ this.currentRobot);
         });
         STGoToRendezVousPositionMove.setStateAction(() -> move());
-        
+
         STRandomDirection.setUp(() -> randWalkDirection = rn.nextDouble() * 2 * Math.PI);
         STRandomDirection.addNext(STRandomMoveCount, () -> isSameDirection(getHeading(), randWalkDirection));
-        STRandomDirection.setStateAction(() ->  stepTurn(fastWayToTurn(randWalkDirection)));
+        STRandomDirection.setStateAction(() -> stepTurn(fastWayToTurn(randWalkDirection)));
 
-        STRandomMoveCount.setUp(() -> randWalkMoveCount = rn.nextInt(200, 500) + 1);
-        STRandomMoveCount.addNext(STRandomDirection,  () -> randWalkMoveCount == 0 || collisionWithTeammatesOrWall());
-        STRandomMoveCount.addNext(STGoToRendezVousPositionTurn,  () -> detectOpponent() != DetectionResultCode.ANY_OPPONENT);
+        STRandomMoveCount.setUp(() -> randWalkMoveCount = rn.nextInt(50) + 1);
+        STRandomMoveCount.addNext(STRandomDirection, () -> randWalkMoveCount == 0);
+        IState STAvoidCollision = new State();
+        STAvoidCollision.setDescription("Avoid collision !");
+        STAvoidCollision.setStateAction(() -> {
+            moveBack();
+            randWalkMoveCount--;
+        });
+        STAvoidCollision.addNext(STRandomDirection, () -> randWalkMoveCount == 0);
+        STRandomMoveCount.addNext(STAvoidCollision, () -> obstacleDetected());
+        STRandomMoveCount.addNext(STGoToRendezVousPositionTurn,
+                () -> detectOpponent() != DetectionResultCode.ANY_OPPONENT);
         STRandomMoveCount.addNext(STStartFire, () -> fireConditionMeet());
-        STRandomMoveCount.setStateAction(()-> {move(); this.randWalkMoveCount--;});
-       
+        STRandomMoveCount.setStateAction(() -> {
+            move();
+            this.randWalkMoveCount--;
+        });
+
         STStartFire.addNext(STRandomWalk, () -> detectOpponent() == DetectionResultCode.ANY_OPPONENT);
         STStartFire.setStateAction(() -> fire(normalize(targetDirection)));
         return STRandomWalk;
     }
 
     private boolean fireConditionMeet() {
-     
-        boolean opponentOnSight = detectOpponents().size() > 0 ;
-        if (opponentOnSight ) {
+
+        boolean opponentOnSight = detectOpponents().size() > 0;
+        if (opponentOnSight) {
             targetDirection = getHeading();
             return true;
         }
@@ -91,14 +104,13 @@ public class MainBotBrain extends MainBotBaseBrain {
         }
         double distance = this.targetPosition.distanceTo(Position.of(robotX, robotY));
 
-        return distance < Parameters.bulletRange  ;
+        return distance < Parameters.bulletRange;
     }
 
-    
-
     protected boolean isSameDirection(double heading, double expectedDirection, boolean log) {
-        //if (log)
-            //System.out.println("heading: " + normalize(heading) + " target: " + normalize(expectedDirection));
+        // if (log)
+        // System.out.println("heading: " + normalize(heading) + " target: " +
+        // normalize(expectedDirection));
         return super.isSameDirection(heading, expectedDirection);
     }
 
@@ -197,7 +209,8 @@ public class MainBotBrain extends MainBotBaseBrain {
      * @return
      */
     private Optional<Position> candidatEnemyToShot(List<Position> positions) {
-        // filter: position pour les quelles il n'y a pas de coéquipiers dans la ligne de tir.
+        // filter: position pour les quelles il n'y a pas de coéquipiers dans la ligne
+        // de tir.
         List<Position> outOfLineOfFire = new ArrayList<Position>();
         for (Position pos : positions) {
             if (!anyTeammatesLineOfFire()) {
@@ -214,7 +227,7 @@ public class MainBotBrain extends MainBotBaseBrain {
 
     private List<Position> extractPositions(ArrayList<String> messages) {
         return messages.stream().map(msg -> {
-             String[] elements = parseOpponentsPosMessage(msg);
+            String[] elements = parseOpponentsPosMessage(msg);
             double y = Double.valueOf(elements[1]);
             double x = Double.valueOf(elements[2]);
             return new Position(x, y);
@@ -257,7 +270,6 @@ public class MainBotBrain extends MainBotBaseBrain {
     @Override
     protected void afterEachStep() {
         super.afterEachStep();
-        sendLogMessage(currentState.toString()+ " " + this.targetPosition);
     }
 
     @Override

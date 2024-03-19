@@ -13,11 +13,13 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Logger;
 
+import algorithms.aboubacarlyna.brains.core.dto.Position;
 import algorithms.aboubacarlyna.brains.core.dto.RobotState;
 import algorithms.aboubacarlyna.statemachine.AnyTransitionConditionMetException;
 import algorithms.aboubacarlyna.statemachine.interfaces.IState;
@@ -42,6 +44,7 @@ public abstract class BaseBrain extends Brain {
     protected double robotX;
     protected double robotY;
     protected IState currentState;
+    protected List<IRadarResult> detectRadarResult = new ArrayList<>();
     int position = 0;
     public static String OPPONENT_POS_MSG_SIGN = "OPPONENT_POS_MSG";
     public static String TEAM_POS_MSG_SIGN = "TEAM_POS_MSG";
@@ -57,8 +60,8 @@ public abstract class BaseBrain extends Brain {
 
     protected boolean temmateDetected() {
         Types objectType = detectFront().getObjectType();
-        return objectType == IFrontSensorResult.Types.TeamMainBot 
-            || objectType == IFrontSensorResult.Types.TeamSecondaryBot;
+        return objectType == IFrontSensorResult.Types.TeamMainBot
+                || objectType == IFrontSensorResult.Types.TeamSecondaryBot;
     }
 
     @Override
@@ -104,6 +107,7 @@ public abstract class BaseBrain extends Brain {
     }
 
     protected void afterEachStep() {
+        sendLogMessage(this.currentState.toString());
     }
 
     private void sendMyStateToTeammates() {
@@ -121,7 +125,8 @@ public abstract class BaseBrain extends Brain {
     public void step() {
         if (!Objects.isNull(currentState)) {
             try {
-                if (this.stateCounter == 0) currentState.setUp();
+                if (this.stateCounter == 0)
+                    currentState.setUp();
                 currentState = currentState.next();
                 currentState.tearDown();
                 this.stateCounter = 0;
@@ -174,7 +179,14 @@ public abstract class BaseBrain extends Brain {
     }
 
     protected List<IRadarResult> detectOpponents() {
-        return detectRadar().stream().filter(result -> this.isOpponentBot(result) && isNotDead(result)).toList();
+        this.detectRadarResult = detectRadar();
+        List<IRadarResult> opponents = new ArrayList<>();
+        for (IRadarResult radarResult : this.detectRadarResult) {
+            if (isOpponentBot(radarResult)) {
+                opponents.add(radarResult);
+            }
+        }
+        return opponents;
     }
 
     protected boolean isNotDead(IRadarResult radarResult) {
@@ -194,8 +206,21 @@ public abstract class BaseBrain extends Brain {
         }
     }
 
-    protected boolean collisionWithTeammatesOrWall() {
-        return  this.detectWall() || this.temmateDetected();
+    protected boolean obstacleDetected() {
+        boolean wallDetected = wallDetected();
+        boolean objectDetected = this.detectRadarResult.stream().anyMatch(result -> {
+            // System.out.println("OBJECT DISTANCE: " + result.getObjectDistance());
+            return result.getObjectDistance() < 100; // the distance is always too big ()
+        });
+
+        if (wallDetected) {
+            System.out.println("WALL DETECTED BY " + currentRobot);
+        }
+        if (objectDetected) {
+            System.out.println("OBJECT DETECTED BY " + currentRobot);
+        }
+
+        return wallDetected || objectDetected;
     }
 
 }
