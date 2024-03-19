@@ -21,7 +21,7 @@ import characteristics.Parameters.Direction;
 public class MainBotBrain extends MainBotBaseBrain {
 
     private double targetDirection;
-    private Position targetPosition;
+    private Position targetPosition = Position.of(0, 0);
     protected double randWalkDirection;
     protected int randWalkMoveCount;
     protected Position rendezVousPosition;
@@ -37,66 +37,29 @@ public class MainBotBrain extends MainBotBaseBrain {
 
     @Override
     protected IState buildStateMachine() {
-        // random walk state
-        IState STRandomWalk = new State();
-        STRandomWalk.setDescription("Random Walk");
-        IState STRandomDirection = new State();
-        STRandomDirection.setDescription("Choose Random Direction");
-        IState STRandomMoveCount = new State();
-        STRandomMoveCount.setDescription("Choose Random Move Count");
-        STRandomWalk.addNext(STRandomDirection);
-
-        // fight states
+        IState STMoveEast = new State();
+        STMoveEast.setDescription("Move East");
         IState STStartFire = new State();
         STStartFire.setDescription("Start Fire");
+        IState STStopFire = new State();
+        STStopFire.setDescription("Stop Fire");
 
-        // rendez-vous state
-        IState STGoToRendezVousPositionTurn = new State();
-        STGoToRendezVousPositionTurn.setDescription("Turn toward rendez-vous position");
-        IState STGoToRendezVousPositionMove = new State();
-        STGoToRendezVousPositionMove.setDescription("Move to rendez-vous position");
+        STMoveEast.addNext(STStartFire, () -> detectOpponent() != DetectionResultCode.ANY_OPPONENT);
+        STMoveEast.setStateAction(() -> move());
 
-        STGoToRendezVousPositionTurn.addNext(STGoToRendezVousPositionMove,
-                () -> isSameDirection(getHeading(), targetDirection, 0.1));
-        STGoToRendezVousPositionMove.addNext(STStartFire, () -> fireConditionMeet());
-        STGoToRendezVousPositionTurn.setStateAction(() -> {
-            targetDirection = normalize(targetDirection);
-            stepTurn(fastWayToTurn(Math.atan2(targetPosition.getY() - robotY, targetPosition.getX() - robotX)));
-        });
-        STGoToRendezVousPositionMove.setStateAction(() -> move());
-
-        STRandomDirection.setUp(() -> randWalkDirection = rn.nextDouble() * 2 * Math.PI);
-        STRandomDirection.addNext(STRandomMoveCount, () -> isSameDirection(getHeading(), randWalkDirection));
-        STRandomDirection.setStateAction(() -> stepTurn(fastWayToTurn(randWalkDirection)));
-
-        STRandomMoveCount.setUp(() -> randWalkMoveCount = rn.nextInt(50) + 1);
-        STRandomMoveCount.addNext(STRandomDirection, () -> randWalkMoveCount == 0);
-        IState STAvoidCollision = new State();
-        STAvoidCollision.setDescription("Avoid collision !");
-        STAvoidCollision.setStateAction(() -> {
-            moveBack();
-            randWalkMoveCount--;
-        });
-        STAvoidCollision.addNext(STRandomDirection, () -> randWalkMoveCount == 0);
-        STRandomMoveCount.addNext(STAvoidCollision, () -> obstacleDetected());
-        STRandomMoveCount.addNext(STGoToRendezVousPositionTurn,
-                () -> detectOpponent() != DetectionResultCode.ANY_OPPONENT);
-        STRandomMoveCount.addNext(STStartFire, () -> fireConditionMeet());
-        STRandomMoveCount.setStateAction(() -> {
-            move();
-            this.randWalkMoveCount--;
-        });
-
-        STStartFire.addNext(STRandomWalk, () -> detectOpponent() == DetectionResultCode.ANY_OPPONENT);
+        STStartFire.addNext(STStopFire,
+                () -> detectOpponent() == DetectionResultCode.ANY_OPPONENT);
         STStartFire.setStateAction(() -> fire(normalize(targetDirection)));
-        return STRandomWalk;
+
+        STStopFire.addNext(STStartFire, () -> detectOpponent() != DetectionResultCode.OPPONENT_IN_LINE_OF_FIRE);
+        return STMoveEast;
     }
 
     private boolean fireConditionMeet() {
 
         boolean opponentOnSight = detectOpponents().size() > 0;
         if (opponentOnSight) {
-            targetDirection = getHeading();
+            targetDirection = -1; // TODO
             return true;
         }
         if (this.targetPosition == null) {
@@ -108,30 +71,16 @@ public class MainBotBrain extends MainBotBaseBrain {
     }
 
     protected boolean isSameDirection(double heading, double expectedDirection, boolean log) {
-        // if (log)
-        // System.out.println("heading: " + normalize(heading) + " target: " +
-        // normalize(expectedDirection));
         return super.isSameDirection(heading, expectedDirection);
     }
 
-    private double findAngleToTurn() {
-        boolean anyTeammatesUp = currentRobot == Robots.MRBOTTOM;
-        if (anyTeammatesUp) {
-            return (Math.PI / 4);
-        } else {
-            // System.out.println(this.findALineOfFireStartAngle - (Math.PI / 4));
-            return this.findALineOfFireStartAngle - (Math.PI / 4);
-        }
-    }
-
-    private boolean anyTeammatesLineOfFire() {
+    private boolean anyTeammatesInLineOfFire(Position targetPosition) {
         for (Robots robot : teammatesPositions.keySet()) {
             RobotState robotState = teammatesPositions.get(robot);
             Position pos = robotState.getPosition();
             if (robotState.getHealth() >= 0) {
-                if (!pos.equals(Position.of(robotX, robotY)) && isInInLineOfFire(pos, teammateRadius)) {
-                    // logger.info("<<" + robot.name() + " is in line of fire >> ~" +
-                    // currentRobot.name());
+                boolean notMe = robotState.getRobotName() != this.currentRobot;
+                if (notMe && isInInLineOfFire(pos, targetPosition, teammateRadius)) {
                     return true;
                 }
             }
@@ -139,21 +88,11 @@ public class MainBotBrain extends MainBotBaseBrain {
         return false;
     }
 
-    private boolean isInInLineOfFire(Position teammatePosition, int r) {
-        double x1 = robotX;
-        double y1 = robotY;
-        if (targetPosition == null) {
-            return false;
-        }
-        double x2 = targetPosition.getX();
-        double y2 = targetPosition.getY();
-        double x3 = teammatePosition.getX();
-        double y3 = teammatePosition.getY();
-        double numerator = Math.abs((y2 - y1) * x3 - (x2 - x1) * y3 + x2 * y1 - y2 * x1);
-        double denominator = Math.sqrt(Math.pow(y2 - y1, 2) + Math.pow(x2 - x1, 2));
-        double distance = numerator / denominator;
-
-        return distance <= r;
+    private boolean isInInLineOfFire(Position teammatePosition, Position targePosition, int r) {
+        return teammatePosition.pointBelongToLine(
+                robotX, robotY,
+                targetPosition.getX(), targetPosition.getY(),
+                r);
     }
 
     private ArrayList<String> filterMessages(ArrayList<String> messages, Predicate<String> f) {
@@ -178,6 +117,7 @@ public class MainBotBrain extends MainBotBaseBrain {
         Optional<Position> optionalPosition = candidatEnemyToShot(positions);
 
         if (optionalPosition.isPresent()) {
+            System.err.println("enemy to shot");
             Position closestPos = optionalPosition.get();
             double distance = closestPos.distanceTo(Position.of(robotX, robotY));
             this.targetPosition = closestPos;
@@ -188,6 +128,7 @@ public class MainBotBrain extends MainBotBaseBrain {
                 return DetectionResultCode.OPPONENT_IN_LINE_OF_FIRE;
             }
         } else {
+            System.out.println("no enemy to shot " + positions.size());
             boolean noOpponent = positions.size() == 0;
             if (noOpponent)
                 return DetectionResultCode.ANY_OPPONENT;
@@ -198,31 +139,29 @@ public class MainBotBrain extends MainBotBaseBrain {
     }
 
     /**
-     * Pick a candidate to shot among the list of positions
+     * Pick a candidate to shot among the list of positions.
      * 
-     * @implNote First strategy: the closest to the robot
-     * @implNote TODO Enhancement: we choose the closest one outside the line of
-     *           fire of
-     *           teammates
-     * 
-     * @param positions
+     * @param filteredPoints
      * @return
      */
-    private Optional<Position> candidatEnemyToShot(List<Position> positions) {
-        // filter: position pour les quelles il n'y a pas de coéquipiers dans la ligne
-        // de tir.
-        List<Position> outOfLineOfFire = new ArrayList<Position>();
-        for (Position pos : positions) {
-            if (!anyTeammatesLineOfFire()) {
-                outOfLineOfFire.add(pos);
+    private Optional<Position> candidatEnemyToShot(List<Position> points) {
+        List<Position> filteredPoints = new ArrayList<>();
+        for (Position targetPosition : points) {
+            if (!anyTeammatesInLineOfFire(targetPosition)) {
+                filteredPoints.add(targetPosition);
             }
         }
 
-        return outOfLineOfFire.stream().min((p1, p2) -> {
+        // closest to the robot
+        if (filteredPoints.size() == 0) {
+            return Optional.empty();
+        }
+
+        return filteredPoints.stream().min((p1, p2) -> {
             double d1 = p1.distanceTo(Position.of(robotX, robotY));
             double d2 = p2.distanceTo(Position.of(robotX, robotY));
             return Double.compare(d1, d2);
-        }).map(Optional::of).orElse(Optional.empty());
+        });
     }
 
     private List<Position> extractPositions(ArrayList<String> messages) {
@@ -252,24 +191,17 @@ public class MainBotBrain extends MainBotBaseBrain {
     @Override
     protected void beforeEachStep() {
         this.receivedMessages = fetchAllMessages();
+        System.out.println("received messages " + this.receivedMessages);
         detectOpponent();
         updateTeammatesPositions();
         logRobotPosition();
         super.beforeEachStep();
     }
 
-    private void logTeammatesPositions() {
-        String logMessage = "";
-        for (Robots robot : teammatesPositions.keySet()) {
-            Position pos = teammatesPositions.get(robot).getPosition();
-            logMessage += robot.name() + " x: " + pos.getX() + " y: " + pos.getY() + "\n";
-        }
-        sendLogMessage(logMessage);
-    }
-
     @Override
     protected void afterEachStep() {
         super.afterEachStep();
+        sendLogMessage(this.currentState.toString() + " " + this.targetDirection);
     }
 
     @Override
@@ -288,7 +220,6 @@ public class MainBotBrain extends MainBotBaseBrain {
             e.printStackTrace();
         }
     }
-
 }
 
 /**

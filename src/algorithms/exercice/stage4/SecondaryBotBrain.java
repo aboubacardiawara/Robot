@@ -14,35 +14,32 @@ import characteristics.IRadarResult;
 public class SecondaryBotBrain extends SecondaryBotBaseBrain {
     Boolean collisionDetected = false;
     protected double targetHeading;
-    private double randomDirection;
-    private double randomMoveCount;
-    private Random rand = new Random();
+    private boolean detected;
 
     @Override
     protected IState buildStateMachine() {
-        // init state
-        IState STRandomWalker = new State();
-        IState STRandomDirection = new State();
-        STRandomDirection.setDescription("Random Direction");
-        STRandomDirection.setUp(() -> this.randomDirection = Math.random() * 2 * Math.PI);
-        STRandomDirection.setStateAction(() -> {
-            stepTurn(fastWayToTurn(this.randomDirection));
+        IState initState = new State();
+
+        initState.setStateAction(() -> {
+
+            for (IRadarResult radarResult : detectRadar()) {
+                if (isOpponentBot(radarResult) && isNotDead(radarResult)) {
+                    double opponentPosX = this.robotX
+                            + radarResult.getObjectDistance() * Math.cos(radarResult.getObjectDirection());
+                    double opponentPosY = this.robotY
+                            + radarResult.getObjectDistance() * Math.sin(radarResult.getObjectDirection());
+                    String message = buildOpponentPosMessage(radarResult, opponentPosX, opponentPosY);
+                    broadcast(message);
+                    detected = true;
+                }
+            }
+            if (!detected) {
+                move();
+            }
+
         });
+        return initState;
 
-        IState STRandomMove = new State();
-        STRandomMove.setDescription("Random Move");
-        STRandomMove.setUp(() -> this.randomMoveCount = this.rand.nextInt(500, 1000));
-        STRandomMove.setStateAction(() -> {
-            this.move();
-            this.randomMoveCount--;
-        });
-
-        // connect states
-        STRandomWalker.addNext(STRandomDirection);
-        STRandomDirection.addNext(STRandomMove, () -> isSameDirection(getHeading(), this.randomDirection));
-        STRandomMove.addNext(STRandomWalker, () -> this.randomMoveCount == 0 || obstacleDetected());
-
-        return STRandomWalker;
     }
 
     private String buildOpponentPosMessage(IRadarResult radarResult, double opponentPosX, double opponentPosY) {
