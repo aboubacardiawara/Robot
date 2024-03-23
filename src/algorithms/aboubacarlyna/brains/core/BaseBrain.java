@@ -32,6 +32,9 @@ public abstract class BaseBrain extends Brain {
 
     private int stateCounter = 0;
 
+    
+    protected ArrayList<String> receivedMessages = new ArrayList<>();
+
     // main robot (up|middle|bottom) + secondary robot (up|bottom)
     public enum Robots {
         MRUP, MRMIDDLE, MRBOTTOM, SRUP, SRBOTTOM
@@ -102,12 +105,16 @@ public abstract class BaseBrain extends Brain {
         return detectFront().getObjectType() == WALL;
     }
 
+    /**
+     * Should be called first in each overridden method.
+     */
     protected void beforeEachStep() {
-        sendMyStateToTeammates();
+        this.receivedMessages = fetchAllMessages();
     }
 
     protected void afterEachStep() {
         sendLogMessage(this.currentState.toString());
+        // sendMyStateToTeammates();
     }
 
     private void sendMyStateToTeammates() {
@@ -123,6 +130,9 @@ public abstract class BaseBrain extends Brain {
 
     @Override
     public void step() {
+        if (this.currentState.toString().equals("Start Fire")) {
+            //System.out.println("steping !");
+        }
         if (!Objects.isNull(currentState)) {
             try {
                 if (this.stateCounter == 0)
@@ -131,6 +141,9 @@ public abstract class BaseBrain extends Brain {
                 currentState.tearDown();
                 this.stateCounter = 0;
             } catch (AnyTransitionConditionMetException e) {
+                if (this.currentState.toString().equals("Start Fire")) {
+                    //System.out.println("FIRE ACTION");
+                }
                 this.beforeEachStep();
                 currentState.performsAction();
                 this.afterEachStep();
@@ -214,10 +227,10 @@ public abstract class BaseBrain extends Brain {
         });
 
         if (wallDetected) {
-            System.out.println("WALL DETECTED BY " + currentRobot);
+            //System.out.println("WALL DETECTED BY " + currentRobot);
         }
         if (objectDetected) {
-            System.out.println("OBJECT DETECTED BY " + currentRobot);
+            //System.out.println("OBJECT DETECTED BY " + currentRobot);
         }
 
         return wallDetected || objectDetected;
