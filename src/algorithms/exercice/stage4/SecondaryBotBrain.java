@@ -90,10 +90,18 @@ public class SecondaryBotBrain extends SecondaryBotBaseBrain {
     }
     TurnTowardEnemies.addNext(DetecState, () -> isSameDirection(getHeading(), turnTowardEnemiesTargetDirection));
     TurnTowardEnemies.setStateAction(() -> {
-      if (this.currentRobot.name().equals(Robots.SRUP.name())) {
-        turnRight();
+      if (this.leftSide) {
+        if (this.currentRobot == Robots.SRUP) {
+          turnRight();
+        } else {
+          turnLeft();
+        }
       } else {
-        turnLeft();
+        if (this.currentRobot == Robots.SRUP) {
+          turnLeft();
+        } else {
+          turnRight();
+        }
       }
     });
 

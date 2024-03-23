@@ -32,7 +32,6 @@ public abstract class BaseBrain extends Brain {
 
     private int stateCounter = 0;
 
-    
     protected ArrayList<String> receivedMessages = new ArrayList<>();
 
     // main robot (up|middle|bottom) + secondary robot (up|bottom)
@@ -131,7 +130,7 @@ public abstract class BaseBrain extends Brain {
     @Override
     public void step() {
         if (this.currentState.toString().equals("Start Fire")) {
-            //System.out.println("steping !");
+            // System.out.println("steping !");
         }
         if (!Objects.isNull(currentState)) {
             try {
@@ -142,7 +141,7 @@ public abstract class BaseBrain extends Brain {
                 this.stateCounter = 0;
             } catch (AnyTransitionConditionMetException e) {
                 if (this.currentState.toString().equals("Start Fire")) {
-                    //System.out.println("FIRE ACTION");
+                    // System.out.println("FIRE ACTION");
                 }
                 this.beforeEachStep();
                 currentState.performsAction();
@@ -219,6 +218,17 @@ public abstract class BaseBrain extends Brain {
         }
     }
 
+    protected Direction fastWayToTurnV2(double targetDirection) {
+        // double diff = targetDirection - this.getHeading();
+        // normalize les angles et le resultat
+        double diff = normalize(normalize(targetDirection) - normalize(this.getHeading()));
+        if (diff <= Math.PI / 2) {
+            return Parameters.Direction.LEFT;
+        } else {
+            return Parameters.Direction.RIGHT;
+        }
+    }
+
     protected boolean obstacleDetected() {
         boolean wallDetected = wallDetected();
         boolean objectDetected = this.detectRadarResult.stream().anyMatch(result -> {
@@ -227,10 +237,10 @@ public abstract class BaseBrain extends Brain {
         });
 
         if (wallDetected) {
-            //System.out.println("WALL DETECTED BY " + currentRobot);
+            // System.out.println("WALL DETECTED BY " + currentRobot);
         }
         if (objectDetected) {
-            //System.out.println("OBJECT DETECTED BY " + currentRobot);
+            // System.out.println("OBJECT DETECTED BY " + currentRobot);
         }
 
         return wallDetected || objectDetected;
