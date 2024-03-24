@@ -17,9 +17,10 @@ public class SecondaryBotBrain extends SecondaryBotBaseBrain {
   Boolean collisionDetected = false;
   protected double targetHeading;
   private boolean detected;
-  private int moveacount = 100;
+  private int moveacount = 200;
   private int angleturn = 1;
-  private int move_back_count = 30;
+  private int move_back_count = 100;
+  private boolean bullet_detected = false;
 
   @Override
   protected IState buildStateMachine() {
@@ -47,15 +48,15 @@ public class SecondaryBotBrain extends SecondaryBotBaseBrain {
 
     if (this.leftSide) {
       if (this.currentRobot == Robots.SRUP) {
-        initStateAngleTarget = this.getHeading() - (Math.PI / 4);
+        initStateAngleTarget = this.getHeading() - (Math.PI / 3);
       } else {
-        initStateAngleTarget = this.getHeading() + (Math.PI / 4);
+        initStateAngleTarget = this.getHeading() + (Math.PI / 3);
       }
     } else {
       if (this.currentRobot == Robots.SRUP) {
-        initStateAngleTarget = this.getHeading() + (Math.PI / 4);
+        initStateAngleTarget = this.getHeading() + (Math.PI / 3);
       } else {
-        initStateAngleTarget = this.getHeading() - (Math.PI / 4);
+        initStateAngleTarget = this.getHeading() - (Math.PI /3);
       }
     }
 
@@ -106,9 +107,8 @@ public class SecondaryBotBrain extends SecondaryBotBaseBrain {
     });
 
     DetecState.setStateAction(() -> {
-      move_back_count = 30;
+      move_back_count = 100;
       detected = false;
-      boolean bullet_detected = false;
       int nombre_robot_vivivant = 0;
       for (IRadarResult radarResult : detectRadar()) {
         // current hour-minute-second
@@ -124,28 +124,29 @@ public class SecondaryBotBrain extends SecondaryBotBaseBrain {
           nombre_robot_vivivant++;
         }
 
-        if (radarResult.getObjectType() == IRadarResult.Types.BULLET
-            && (radarResult.getObjectType() == IRadarResult.Types.OpponentMainBot
-                || radarResult.getObjectType() == IRadarResult.Types.TeamMainBot)) {
-          bullet_detected = true;
+        if (radarResult.getObjectType() == IRadarResult.Types.BULLET){
+         //bullet_detected = true;
         }
       }
       if (!detected) {
         move();
       }
+      System.out.println(bullet_detected + " "+ move_back_count );
       while (bullet_detected && move_back_count != 0) {
-        moveBack();
+        System.out.println("move back");
+        //moveBack();
         move_back_count--;
       }
-      move_back_count = 30;
+      move_back_count = 100;
       bullet_detected = false;
     });
 
+    //Detect wall faire le tour du terain et non pas des aller retour 
     DetecState.addNext(STTurnWest, () -> detectWall() && isSameDirection(getHeading(), Parameters.EAST));
     DetecState.addNext(STTurnWest, () -> detectWall() && isSameDirection(getHeading(), Parameters.NORTH));
     DetecState.addNext(STTurnEast, () -> detectWall() && isSameDirection(getHeading(), Parameters.SOUTH));
     DetecState.addNext(STTurnEast, () -> detectWall() && isSameDirection(getHeading(), Parameters.WEST));
-    STTurnWest.addNext(DetecState, () -> isSameDirection(getHeading(), Parameters.WEST));
+    STTurnWest.addNext(DetecState, () -> isSameDirection(getHeading(), Parameters.NORTH));
     STTurnWest.setStateAction(() -> {
       turnRight();
     });

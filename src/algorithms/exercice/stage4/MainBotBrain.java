@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.function.Predicate;
 
+import algorithms.aboubacarlyna.brains.core.BaseBrain.Robots;
 import algorithms.aboubacarlyna.brains.core.MainBotBaseBrain;
 import algorithms.aboubacarlyna.brains.core.dto.Const;
 import algorithms.aboubacarlyna.brains.core.dto.Position;
@@ -33,6 +34,8 @@ public class MainBotBrain extends MainBotBaseBrain {
     private boolean opponent_detected = false;
     boolean fire_opennet_detected= false;
     private int move_back_count=150;
+    private int init_place_robot = 150;
+    double initStateAngleTarget=0;
 
     Random rn = new Random();
     int detect_openent = -1;
@@ -40,6 +43,12 @@ public class MainBotBrain extends MainBotBaseBrain {
 
     @Override
     protected IState buildStateMachine() {
+        IState initState = new State();
+        initState.setDescription("Init State");
+        IState MoveState = new State();
+        MoveState.setDescription("Move State");
+        IState TurnTowardEnemies = new State();
+        TurnTowardEnemies.setDescription("Turn Right");
         IState STMoveEast = new State();
         STMoveEast.setDescription("Move East");
         IState STStartFire = new State();
@@ -58,87 +67,147 @@ public class MainBotBrain extends MainBotBaseBrain {
         DeblocState1.setDescription("Debloc State1");
         IState DeblocState2 = new State();
         DeblocState2.setDescription("Debloc State2");
-        IState DeblocState3 = new State();
-        DeblocState2.setDescription("Debloc State3");
         IState FireByradar = new State();
         FireByradar.setDescription("Fire by radar");
         
-                STMoveEast.addNext(STStartFire, () -> opponent_detected );
-                STMoveEast.setStateAction(() -> {
-                 move_back_count=150;
-                 for (IRadarResult radar: detectRadar()) {
-                    if (radar.getObjectType() == IRadarResult.Types.BULLET && radar.getObjectType()== IRadarResult.Types.OpponentMainBot) {
-                        bullet_detected = true;
-                    }
-                    if (radar.getObjectType() == IRadarResult.Types.OpponentMainBot || radar.getObjectType() == IRadarResult.Types.OpponentSecondaryBot) {
-                        opponent_detected = true;
-                        break;
-                    }
-                 }
-                  if (bullet_detected ) {
-                    //moveBack();
-                    bullet_detected= false;
-                 }else {
-                    move();
-                 }
-                });
-        
-                //Fire using the messages sznd from the secondery bots.
-                STMoveEast.addNext(FireByradar, () -> detectOpponentbis());
-                FireByradar.setStateAction(() -> { fire(normalize(targetDirection)); });
-                FireByradar.addNext(STMoveEast, () ->  !detectOpponentbis());
+
+    //Emplacement des robots 
+    if (this.leftSide) {
+      if (this.currentRobot == Robots.MRUP) {
+        initStateAngleTarget = this.getHeading() - (Math.PI / 4);
+      } else {
+        if (this.currentRobot == Robots.MRBOTTOM) {
+        initStateAngleTarget = this.getHeading() +  (Math.PI / 4);
+        }
+      }
+    } else {
+      if (this.currentRobot == Robots.MRUP) {
+        initStateAngleTarget = this.getHeading() + (Math.PI / 4);
+      } else {
+        initStateAngleTarget = this.getHeading() - (Math.PI / 4);
+      }
+    }
+
+    initState.addNext(MoveState, () -> isSameDirection(getHeading(), initStateAngleTarget));
+    initState.setStateAction(() -> {
+      if (leftSide) {
+        if (this.currentRobot == Robots.MRUP) {
+          turnLeft();
+        } else {
+          turnRight();
+        }
+      } else {
+        if (this.currentRobot == Robots.MRUP) {
+          turnLeft();
+        } else {
+         turnLeft();
+        }
+      }
+    });
+
+    MoveState.addNext(TurnTowardEnemies, () -> init_place_robot == 0);
+    MoveState.setStateAction(() -> {
+      move();
+      init_place_robot--;
+    });
+
+    double turnTowardEnemiesTargetDirection;
+    if (this.leftSide) {
+      turnTowardEnemiesTargetDirection = Parameters.EAST;
+    } else {
+      turnTowardEnemiesTargetDirection = Parameters.WEST;
+    }
+    TurnTowardEnemies.addNext(STMoveEast, () -> isSameDirection(getHeading(), turnTowardEnemiesTargetDirection));
+    TurnTowardEnemies.setStateAction(() -> {
+      if (this.leftSide) {
+        if (this.currentRobot == Robots.MRUP) {
+          turnRight();
+        } else {
+          turnLeft();
+        }
+      } else {
+        if (this.currentRobot == Robots.MRUP) {
+          turnLeft();
+        } else {
+          turnRight();
+        }
+      }
+    });
 
 
-                //Fire using the robot main radar.
-                STStartFire.addNext(STMoveEast, () -> !opponent_detected  && !fire_opennet_detected);
-                STStartFire.setStateAction(() -> {
-                     fire_opennet_detected= false;
-                     move_back_count=50;
-        
-        
-                    for (IRadarResult radar : detectRadar()) {
-                        if (radar.getObjectType() == IRadarResult.Types.BULLET && radar.getObjectType()== IRadarResult.Types.OpponentMainBot) {
-                            bullet_detected = true;
-                            moveBack();
-                        }
-                        if (radar.getObjectType() == IRadarResult.Types.OpponentMainBot || radar.getObjectType() == IRadarResult.Types.OpponentSecondaryBot) {
-                            fire(radar.getObjectDirection());
-                            fire_opennet_detected =true;
-                        }
-                        
-                    }
-                    opponent_detected =false;
-                });
+    STMoveEast.addNext(STStartFire, () -> opponent_detected );
+    STMoveEast.setStateAction(() -> {
+        move_back_count=150;
+        for (IRadarResult radar: detectRadar()) {
+        if (radar.getObjectType() == IRadarResult.Types.BULLET && radar.getObjectType()== IRadarResult.Types.OpponentMainBot) {
+            bullet_detected = true;
+        }
+        if (radar.getObjectType() == IRadarResult.Types.OpponentMainBot || radar.getObjectType() == IRadarResult.Types.OpponentSecondaryBot) {
+            opponent_detected = true;
+            break;
+        }
+        }
+        if (bullet_detected ) {
+        //moveBack();
+        bullet_detected= false;
+        }else {
+        move();
+        }
+    });
 
-                //Deblocage quand je detect un mure.
-                STMoveEast.addNext(STTurnWest, ()-> detectWall() && isSameDirection(getHeading(), Parameters.EAST));
-                STMoveEast.addNext(STTurnWest, ()-> detectWall() && isSameDirection(getHeading(), Parameters.NORTH));
-                STMoveEast.addNext(STTurnEast, ()-> detectWall() && isSameDirection(getHeading(), Parameters.SOUTH));
-                STMoveEast.addNext(STTurnEast, ()-> detectWall() && isSameDirection(getHeading(), Parameters.WEST));
-                STTurnWest.addNext(STMoveEast, () -> isSameDirection(getHeading(), Parameters.WEST) );
-                STTurnWest.setStateAction(() -> { turnRight(); });
-                STTurnEast.addNext(STMoveEast, () -> isSameDirection(getHeading(), Parameters.EAST) );
-                STTurnEast.setStateAction(() -> { turnRight(); });
-        
+    //Fire using the messages sznd from the secondery bots.
+    STMoveEast.addNext(FireByradar, () -> detectOpponentBis());
+    FireByradar.setStateAction(() -> { fire(normalize(targetDirection));});
+    FireByradar.addNext(STMoveEast, () ->  !detectOpponentBis());
 
-                //Deblocage quand je detect un autre robot devant moi.
-                // STMoveEast.addNext(DeblocState1, () -> opponentFrontOfMe() && this.currentState != STStartFire);
-                // DeblocState1.addNext(DeblocState2, () -> move_back_count==0 );
-                // DeblocState1.setStateAction(() -> {
-                //     moveBack();
-                //     move_back_count--;
-                // });
-                // DeblocState2.addNext(DeblocState3, ()-> isSameDirection(getHeading(), Math.PI/2));
-                // DeblocState2.setStateAction(() -> {
-                //     turnRight();
-                //     move_back_count= 150;
-                // });
-                // DeblocState3.addNext(STMoveEast, () -> isSameDirection(getHeading(), 0));
-                // DeblocState3.setStateAction(() -> {
-                //     move();
-                // });
 
-        return STMoveEast;
+    //Fire using the robot main radar.
+    STStartFire.addNext(STMoveEast, () -> !opponent_detected  && !fire_opennet_detected);
+    STStartFire.setStateAction(() -> {
+        fire_opennet_detected= false;
+        move_back_count=50;
+        for (IRadarResult radar : detectRadar()) {
+            if (radar.getObjectType() == IRadarResult.Types.BULLET && radar.getObjectType()== IRadarResult.Types.OpponentMainBot) {
+                bullet_detected = true;
+                moveBack();
+            }
+            if (radar.getObjectType() == IRadarResult.Types.OpponentMainBot || radar.getObjectType() == IRadarResult.Types.OpponentSecondaryBot) {
+                fire(radar.getObjectDirection());
+                fire_opennet_detected =true;
+            }
+        }
+        opponent_detected =false;
+    });
+
+        //Deblocage quand un robot detect un mure.
+        STMoveEast.addNext(STTurnWest, ()-> detectWall() && isSameDirection(getHeading(), Parameters.EAST));
+        STMoveEast.addNext(STTurnWest, ()-> detectWall() && isSameDirection(getHeading(), Parameters.NORTH));
+        STMoveEast.addNext(STTurnEast, ()-> detectWall() && isSameDirection(getHeading(), Parameters.SOUTH));
+        STMoveEast.addNext(STTurnEast, ()-> detectWall() && isSameDirection(getHeading(), Parameters.WEST));
+        STTurnWest.addNext(STMoveEast, () -> isSameDirection(getHeading(), Parameters.WEST) );
+        STTurnWest.setStateAction(() -> { turnRight(); });
+        STTurnEast.addNext(STMoveEast, () -> isSameDirection(getHeading(), Parameters.EAST) );
+        STTurnEast.setStateAction(() -> { turnRight(); });
+
+
+        //Deblocage quand je detect un autre robot devant moi.
+        // STMoveEast.addNext(DeblocState1, () -> opponentFrontOfMe() && this.currentState != STStartFire);
+        // DeblocState1.addNext(DeblocState2, () -> move_back_count==0 );
+        // DeblocState1.setStateAction(() -> {
+        //     moveBack();
+        //     move_back_count--;
+        // });
+        // DeblocState2.addNext(DeblocState3, ()-> isSameDirection(getHeading(), Math.PI/2));
+        // DeblocState2.setStateAction(() -> {
+        //     turnRight();
+        //     move_back_count= 150;
+        // });
+        // DeblocState3.addNext(STMoveEast, () -> isSameDirection(getHeading(), 0));
+        // DeblocState3.setStateAction(() -> {
+        //     move();
+        // });
+
+        return initState;
     }
 
     /** Verifie si j'ai un ennemi devant mois
@@ -238,7 +307,7 @@ public class MainBotBrain extends MainBotBaseBrain {
             }
         }
     }
-    private boolean detectOpponentbis(){
+    private boolean detectOpponentBis(){
         List<Position> positions = getOpponentsPos();
         Optional<Position> optionalPosition = candidatEnemyToShot(positions);
         if (optionalPosition.isPresent()) {
