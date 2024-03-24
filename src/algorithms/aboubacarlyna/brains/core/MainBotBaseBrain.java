@@ -2,7 +2,6 @@ package algorithms.aboubacarlyna.brains.core;
 
 import java.util.ArrayList;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import characteristics.IRadarResult;
 import characteristics.Parameters;

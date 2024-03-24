@@ -46,7 +46,7 @@ public class Parameters {
                                                                // is suppoed to
                                                                // be
                                                                // absolute
-                        teamAMainBotSpeed = 3, // 1 unit = 1mm, distance performed at step movement
+                        teamAMainBotSpeed = 1, // 1 unit = 1mm, distance performed at step movement
                         teamAMainBotStepTurnAngle = 0.01 * Math.PI, // trigonometric unit, angle performed at step turn
                                                                     // action
                         teamAMainBotHealth = 300, // FICTIONAL SIMOVIES
@@ -99,7 +99,7 @@ public class Parameters {
         // ---TEAM-B-PARAMETERS---//
         // -----------------------//
         public static final String teamBName = "Fantom Danger";
-        public static final String teamBMainBotBrainClassName = "algorithms.RandomFire"; // class
+        public static final String teamBMainBotBrainClassName = "algorithms.CampFire"; // class
                                                                                                            // given by
                                                                                                            // name; is
         // supposed
@@ -114,7 +114,7 @@ public class Parameters {
                                                                // is suppoed to
                                                                // be
                                                                // absolute
-                        teamBMainBotSpeed = 3, // 1 unit = 1mm, distance performed at step movement
+                        teamBMainBotSpeed = 1, // 1 unit = 1mm, distance performed at step movement
                         teamBMainBotStepTurnAngle = 0.01 * Math.PI, // trigonometric unit, angle performed at step turn
                                                                     // action
                         teamBMainBotHealth = 300, // FICTIONAL SIMOVIES
@@ -134,7 +134,7 @@ public class Parameters {
                                                          // coordinate
                                                          // reference
 
-        public static final String teamBSecondaryBotBrainClassName = "algorithms.RandomFire"; // class
+        public static final String teamBSecondaryBotBrainClassName = "algorithms.CampBot"; // class
                                                                                                                      // given
                                                                                                                      // by
         // name; is

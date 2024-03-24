@@ -1,7 +1,6 @@
 package algorithms.exercice.stage4;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,159 +8,253 @@ import java.util.Optional;
 import java.util.Random;
 import java.util.function.Predicate;
 
+import algorithms.aboubacarlyna.brains.core.BaseBrain.Robots;
 import algorithms.aboubacarlyna.brains.core.MainBotBaseBrain;
 import algorithms.aboubacarlyna.brains.core.dto.Const;
 import algorithms.aboubacarlyna.brains.core.dto.Position;
 import algorithms.aboubacarlyna.brains.core.dto.RobotState;
 import algorithms.aboubacarlyna.statemachine.impl.State;
 import algorithms.aboubacarlyna.statemachine.interfaces.IState;
+import characteristics.IFrontSensorResult;
+import characteristics.IRadarResult;
 import characteristics.Parameters;
-import characteristics.Parameters.Direction;
 
 public class MainBotBrain extends MainBotBaseBrain {
 
     private double targetDirection;
-    private Position targetPosition;
+    private Position targetPosition = Position.of(0, 0);
+    protected double randWalkDirection;
+    protected int randWalkMoveCount;
+    protected Position rendezVousPosition;
     protected final int teammateRadius = 3;
     protected double findALineOfFireStartAngle;
     protected double findALineOfFireMoveCounter;
     protected double rotationCount;
+    private boolean bullet_detected = false;
+    private boolean opponent_detected = false;
+    boolean fire_opennet_detected= false;
+    private int move_back_count=150;
+    private int init_place_robot = 150;
+    double initStateAngleTarget=0;
 
     Random rn = new Random();
-    protected Map<Robots, RobotState> teammatesPositions;
-    private boolean shouldFire = false;
-
-    private ArrayList<String> receivedMessages;
+    int detect_openent = -1;
+    protected Map<Robots, RobotState> teammatesPositions = new HashMap<>();
 
     @Override
     protected IState buildStateMachine() {
-        Random rn = new Random();
-        this.teammatesPositions = new HashMap<Robots, RobotState>();
-        IState turnLittleBitLeft = new State();
-        turnLittleBitLeft.setDescription("turnLittleBitLeft");
-        IState moveEast = new State();
-        moveEast.setDescription("moveEast");
-        IState turnTowardOpponent = new State();
-        turnTowardOpponent.setDescription("turnTowardOpponent");
-        IState moveBackState = new State();
-        moveBackState.setDescription("moveBackState");
-        IState fireState = new State(2);
-        fireState.setDescription("fireState");
-        IState stopFiring = new State();
-        stopFiring.setDescription("stopFiring");
-        IState findALineOfFireStateRotationStep0 = new State();
-        findALineOfFireStateRotationStep0.setDescription("findALineOfFirerotation_step_initialisation");
-        IState findALineOfFireStateRotationStep = new State();
-        findALineOfFireStateRotationStep.setDescription("findALineOfFire_45_rotation_step");
-        IState findALineOfFireStateMoveStep0 = new State();
-        findALineOfFireStateMoveStep0.setDescription("findALineOfFireMoveState_initialisation");
-        IState findALineOfFireStateMoveStep = new State();
-        findALineOfFireStateMoveStep.setDescription("findALineOfFire_move_step");
+        IState initState = new State();
+        initState.setDescription("Init State");
+        IState MoveState = new State();
+        MoveState.setDescription("Move State");
+        IState TurnTowardEnemies = new State();
+        TurnTowardEnemies.setDescription("Turn Right");
+        IState STMoveEast = new State();
+        STMoveEast.setDescription("Move East");
+        IState STStartFire = new State();
+        STStartFire.setDescription("Start Fire");
+        IState STStopFire = new State();
+        IState StFirebyRadar = new State();
+        STStopFire.setDescription("Stop Fire");
+        StFirebyRadar.setDescription("Fire A-R");
+        IState STMoveWest = new State();
+        STMoveWest.setDescription("Move West");
+        IState STTurnWest = new State();
+        STTurnWest.setDescription("Turn West");
+        IState STTurnEast = new State();
+        STTurnEast.setDescription("Turn East");
+        IState DeblocState1 = new State();
+        DeblocState1.setDescription("Debloc State1");
+        IState DeblocState2 = new State();
+        DeblocState2.setDescription("Debloc State2");
+        IState FireByradar = new State();
+        FireByradar.setDescription("Fire by radar");
+        
 
-        turnLittleBitLeft.addNext(moveEast,
-                () -> isSameDirection(getHeading(), getHeading()));
-        turnLittleBitLeft.setStateAction(() -> {
-            stepTurn(Parameters.Direction.LEFT);
-        });
+    //Emplacement des robots 
+    if (this.leftSide) {
+      if (this.currentRobot == Robots.MRUP) {
+        initStateAngleTarget = this.getHeading() - (Math.PI / 4);
+      } else {
+        if (this.currentRobot == Robots.MRBOTTOM) {
+        initStateAngleTarget = this.getHeading() +  (Math.PI / 4);
+        }
+      }
+    } else {
+      if (this.currentRobot == Robots.MRUP) {
+        initStateAngleTarget = this.getHeading() + (Math.PI / 4);
+      } else {
+        initStateAngleTarget = this.getHeading() - (Math.PI / 4);
+      }
+    }
 
-        moveEast.addNext(fireState, () -> {
-            int res = detectOpponents();
-            System.out.println("res: " + res + " " + (DetectionResultCode.NO_OPPONENT));
-            return res != DetectionResultCode.NO_OPPONENT;
-            
-            });
-        moveEast.setStateAction(() -> {
-            move();
-        });
+    initState.addNext(MoveState, () -> isSameDirection(getHeading(), initStateAngleTarget));
+    initState.setStateAction(() -> {
+      if (leftSide) {
+        if (this.currentRobot == Robots.MRUP) {
+          turnLeft();
+        } else {
+          turnRight();
+        }
+      } else {
+        if (this.currentRobot == Robots.MRUP) {
+          turnLeft();
+        } else {
+         turnLeft();
+        }
+      }
+    });
+
+    MoveState.addNext(TurnTowardEnemies, () -> init_place_robot == 0);
+    MoveState.setStateAction(() -> {
+      move();
+      init_place_robot--;
+    });
+
+    double turnTowardEnemiesTargetDirection;
+    if (this.leftSide) {
+      turnTowardEnemiesTargetDirection = Parameters.EAST;
+    } else {
+      turnTowardEnemiesTargetDirection = Parameters.WEST;
+    }
+    TurnTowardEnemies.addNext(STMoveEast, () -> isSameDirection(getHeading(), turnTowardEnemiesTargetDirection));
+    TurnTowardEnemies.setStateAction(() -> {
+      if (this.leftSide) {
+        if (this.currentRobot == Robots.MRUP) {
+          turnRight();
+        } else {
+          turnLeft();
+        }
+      } else {
+        if (this.currentRobot == Robots.MRUP) {
+          turnLeft();
+        } else {
+          turnRight();
+        }
+      }
+    });
 
 
-        moveBackState.setStateAction(() -> {
-            move();
-        });
+    STMoveEast.addNext(STStartFire, () -> opponent_detected );
+    STMoveEast.setStateAction(() -> {
+        move_back_count=150;
+        for (IRadarResult radar: detectRadar()) {
+        if (radar.getObjectType() == IRadarResult.Types.BULLET && radar.getObjectType()== IRadarResult.Types.OpponentMainBot) {
+            bullet_detected = true;
+        }
+        if (radar.getObjectType() == IRadarResult.Types.OpponentMainBot || radar.getObjectType() == IRadarResult.Types.OpponentSecondaryBot) {
+            opponent_detected = true;
+            break;
+        }
+        }
+        if (bullet_detected ) {
+        //moveBack();
+        bullet_detected= false;
+        }else {
+        move();
+        }
+    });
 
-        fireState.addNext(stopFiring, () -> detectOpponents() == DetectionResultCode.NO_OPPONENT);
-        fireState.addNext(findALineOfFireStateRotationStep0,
-                () -> detectOpponents() == DetectionResultCode.TEAMMATES_IN_LINE_OF_FIRE);
-        fireState.setStateAction(() -> {
-            if (shouldFire && !anyTeammatesLineOfFire()) {
-                fire(targetDirection);
+    //Fire using the messages sznd from the secondery bots.
+    STMoveEast.addNext(FireByradar, () -> detectOpponentBis());
+    FireByradar.setStateAction(() -> { fire(normalize(targetDirection));});
+    FireByradar.addNext(STMoveEast, () ->  !detectOpponentBis());
+
+
+    //Fire using the robot main radar.
+    STStartFire.addNext(STMoveEast, () -> !opponent_detected  && !fire_opennet_detected);
+    STStartFire.setStateAction(() -> {
+        fire_opennet_detected= false;
+        move_back_count=50;
+        for (IRadarResult radar : detectRadar()) {
+            if (radar.getObjectType() == IRadarResult.Types.BULLET && radar.getObjectType()== IRadarResult.Types.OpponentMainBot) {
+                bullet_detected = true;
+                moveBack();
             }
-        });
-
-        findALineOfFireStateRotationStep0.addNext(findALineOfFireStateRotationStep);
-        findALineOfFireStateRotationStep0.setStateAction(() -> {
-            findALineOfFireStartAngle = getHeading();
-            rotationCount = 10;
-        });
-
-        findALineOfFireStateRotationStep.addNext(findALineOfFireStateMoveStep0,
-                () -> rotationCount == 0);
-
-        findALineOfFireStateRotationStep.setStateAction(() -> {
-            rotationCount--;
-            if (currentRobot == Robots.MRBOTTOM) {
-                stepTurn(Parameters.Direction.RIGHT);
-            } else {
-                stepTurn(Parameters.Direction.LEFT);
+            if (radar.getObjectType() == IRadarResult.Types.OpponentMainBot || radar.getObjectType() == IRadarResult.Types.OpponentSecondaryBot) {
+                fire(radar.getObjectDirection());
+                fire_opennet_detected =true;
             }
-        });
+        }
+        opponent_detected =false;
+    });
 
-        findALineOfFireStateMoveStep0.addNext(findALineOfFireStateMoveStep);
-        findALineOfFireStateMoveStep0.setStateAction(() -> {
-            findALineOfFireMoveCounter = 10;
-        });
+        //Deblocage quand un robot detect un mure.
+        STMoveEast.addNext(STTurnWest, ()-> detectWall() && isSameDirection(getHeading(), Parameters.EAST));
+        STMoveEast.addNext(STTurnWest, ()-> detectWall() && isSameDirection(getHeading(), Parameters.NORTH));
+        STMoveEast.addNext(STTurnEast, ()-> detectWall() && isSameDirection(getHeading(), Parameters.SOUTH));
+        STMoveEast.addNext(STTurnEast, ()-> detectWall() && isSameDirection(getHeading(), Parameters.WEST));
+        STTurnWest.addNext(STMoveEast, () -> isSameDirection(getHeading(), Parameters.WEST) );
+        STTurnWest.setStateAction(() -> { turnRight(); });
+        STTurnEast.addNext(STMoveEast, () -> isSameDirection(getHeading(), Parameters.EAST) );
+        STTurnEast.setStateAction(() -> { turnRight(); });
 
-        findALineOfFireStateMoveStep.addNext(fireState, () -> findALineOfFireMoveCounter == 0);
-        findALineOfFireStateMoveStep.setStateAction(() -> {
-            move();
-            findALineOfFireMoveCounter--;
-        });
 
-        stopFiring.addNext(fireState, () -> detectOpponents() != DetectionResultCode.NO_OPPONENT);
-        stopFiring.setStateAction(() -> {
-            this.shouldFire = false;
-        });
+        //Deblocage quand je detect un autre robot devant moi.
+        // STMoveEast.addNext(DeblocState1, () -> opponentFrontOfMe() && this.currentState != STStartFire);
+        // DeblocState1.addNext(DeblocState2, () -> move_back_count==0 );
+        // DeblocState1.setStateAction(() -> {
+        //     moveBack();
+        //     move_back_count--;
+        // });
+        // DeblocState2.addNext(DeblocState3, ()-> isSameDirection(getHeading(), Math.PI/2));
+        // DeblocState2.setStateAction(() -> {
+        //     turnRight();
+        //     move_back_count= 150;
+        // });
+        // DeblocState3.addNext(STMoveEast, () -> isSameDirection(getHeading(), 0));
+        // DeblocState3.setStateAction(() -> {
+        //     move();
+        // });
 
-        return turnLittleBitLeft;
+        return initState;
+    }
+
+    /** Verifie si j'ai un ennemi devant mois
+     * 
+     * @return
+     */
+    private boolean opponentFrontOfMe() {
+      // 1. detecte radar: objets
+      // 2. si un enemi est devant moi avec une ouverture de  45°, return vrai
+      // 3. sinon return faux
+      for (IRadarResult radar: detectRadar()) {
+          if (radar.getObjectType() == IRadarResult.Types.OpponentMainBot || radar.getObjectType() == IRadarResult.Types.OpponentSecondaryBot) {
+              double direction = normalize(radar.getObjectDirection());
+              if (direction > -Math.PI/2 && direction < Math.PI/2 || direction > 3*Math.PI/2 && direction < 2*Math.PI) {
+                  return true;
+              }
+          }
+      }
+      return false;
+    }
+
+    private boolean fireConditionMeet() {
+
+        boolean opponentOnSight = detectOpponents().size() > 0;
+        if (opponentOnSight) {
+            targetDirection = -1; // TODO
+            return true;
+        }
+        if (this.targetPosition == null) {
+            return false;
+        }
+        double distance = this.targetPosition.distanceTo(Position.of(robotX, robotY));
+
+        return distance < Parameters.bulletRange;
     }
 
     protected boolean isSameDirection(double heading, double expectedDirection, boolean log) {
-        if (log)
-            System.out.println("heading: " + normalize(heading) + " target: " + normalize(expectedDirection));
         return super.isSameDirection(heading, expectedDirection);
     }
 
-    protected Direction fastWayToTurn(double targetDirection) {
-        double diff = targetDirection - this.getHeading();
-        if (diff > Math.PI) {
-            return Parameters.Direction.LEFT;
-        } else if (diff < -Math.PI) {
-            return Parameters.Direction.RIGHT;
-        } else if (diff > 0) {
-            return Parameters.Direction.RIGHT;
-        } else {
-            return Parameters.Direction.LEFT;
-        }
-    }
-
-    private double findAngleToTurn() {
-        boolean anyTeammatesUp = currentRobot == Robots.MRBOTTOM;
-        if (anyTeammatesUp) {
-            return (Math.PI / 4);
-        } else {
-            System.out.println(this.findALineOfFireStartAngle - (Math.PI / 4));
-            return this.findALineOfFireStartAngle - (Math.PI / 4);
-        }
-    }
-
-    private boolean anyTeammatesLineOfFire() {
+    private boolean anyTeammatesInLineOfFire(Position targetPosition) {
         for (Robots robot : teammatesPositions.keySet()) {
             RobotState robotState = teammatesPositions.get(robot);
             Position pos = robotState.getPosition();
             if (robotState.getHealth() >= 0) {
-                if (!pos.equals(Position.of(robotX, robotY)) && isInInLineOfFire(pos, teammateRadius)) {
-                    // logger.info("<<" + robot.name() + " is in line of fire >> ~" +
-                    // currentRobot.name());
+                boolean notMe = robotState.getRobotName() != this.currentRobot;
+                if (notMe && isInInLineOfFire(pos, targetPosition, teammateRadius)) {
                     return true;
                 }
             }
@@ -169,25 +262,15 @@ public class MainBotBrain extends MainBotBaseBrain {
         return false;
     }
 
-    private boolean isInInLineOfFire(Position teammatePosition, int r) {
-        double x1 = robotX;
-        double y1 = robotY;
-        if (targetPosition == null) {
-            return false;
-        }
-        double x2 = targetPosition.getX();
-        double y2 = targetPosition.getY();
-        double x3 = teammatePosition.getX();
-        double y3 = teammatePosition.getY();
-        double numerator = Math.abs((y2 - y1) * x3 - (x2 - x1) * y3 + x2 * y1 - y2 * x1);
-        double denominator = Math.sqrt(Math.pow(y2 - y1, 2) + Math.pow(x2 - x1, 2));
-        double distance = numerator / denominator;
-
-        return distance <= r;
+    private boolean isInInLineOfFire(Position teammatePosition, Position targePosition, int r) {
+        return teammatePosition.pointBelongToLine(
+                robotX, robotY,
+                targetPosition.getX(), targetPosition.getY(),
+                r);
     }
 
-    private ArrayList<String> filterMessages(ArrayList<String> messages, Predicate<String> f) {
-        return messages.stream().filter(f).collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+    private ArrayList<String> filterMessages(Predicate<String> f) {
+        return this.receivedMessages.stream().filter(f).collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
     }
 
     /**
@@ -200,69 +283,69 @@ public class MainBotBrain extends MainBotBaseBrain {
      *         2 if the opponents are out of line of fire because of teammates
      *         being in line of fire.s
      */
-    private int detectOpponents() {
-        ArrayList<String> messages = filterMessages(
-                this.receivedMessages,
-                msg -> msg.startsWith(Const.OPPONENT_POS_MSG_SIGN, 0));
-        List<Position> positions = extractPositions(messages);
+    private int detectOpponent() {
+        List<Position> positions = getOpponentsPos();
         Optional<Position> optionalPosition = candidatEnemyToShot(positions);
 
         if (optionalPosition.isPresent()) {
             Position closestPos = optionalPosition.get();
             double distance = closestPos.distanceTo(Position.of(robotX, robotY));
+            // effet de bord
             this.targetPosition = closestPos;
             this.targetDirection = Math.atan2(closestPos.getY() - robotY, closestPos.getX() - robotX);
             if (distance > Parameters.bulletRange) {
-                this.shouldFire = false;
                 return DetectionResultCode.OPPONENT_OUT_OF_LINE_OF_FIRE;
             } else {
-                this.shouldFire = true;
                 return DetectionResultCode.OPPONENT_IN_LINE_OF_FIRE;
             }
         } else {
             boolean noOpponent = positions.size() == 0;
             if (noOpponent)
-                return DetectionResultCode.NO_OPPONENT;
+                return DetectionResultCode.ANY_OPPONENT;
             else {
                 return DetectionResultCode.TEAMMATES_IN_LINE_OF_FIRE;
             }
         }
     }
-
-    /**
-     * Pick a candidate to shot among the list of positions
-     * 
-     * @implNote First strategy: the closest to the robot
-     * @implNote TODO Enhancement: we choose the closest one outside the line of
-     *           fire of
-     *           teammates
-     * 
-     * @param positions
-     * @return
-     */
-    private Optional<Position> candidatEnemyToShot(List<Position> positions) {
-        // filter: position pour les quelles il n'y a pas de coéquipiers dans la ligne de tir.
-        List<Position> outOfLineOfFire = new ArrayList<Position>();
-        for (Position pos : positions) {
-            if (!anyTeammatesLineOfFire()) {
-                outOfLineOfFire.add(pos);
+    private boolean detectOpponentBis(){
+        List<Position> positions = getOpponentsPos();
+        Optional<Position> optionalPosition = candidatEnemyToShot(positions);
+        if (optionalPosition.isPresent()) {
+            Position closestPos = optionalPosition.get();
+            double distance = closestPos.distanceTo(Position.of(robotX, robotY));
+            // effet de bord
+            this.targetPosition = closestPos;
+            this.targetDirection = Math.atan2(closestPos.getY() - robotY, closestPos.getX() - robotX);
+            if (distance < Parameters.bulletRange) {
+                return true;
             }
         }
-        
-        return outOfLineOfFire.stream().min((p1, p2) -> {
+        return false;
+    }
+
+    /**
+     * Pick a candidate to shot among the list of positions.
+     * 
+     * @param filteredPoints
+     * @return
+     */
+    private Optional<Position> candidatEnemyToShot(List<Position> points) {
+        return points.stream().min((p1, p2) -> {
             double d1 = p1.distanceTo(Position.of(robotX, robotY));
             double d2 = p2.distanceTo(Position.of(robotX, robotY));
             return Double.compare(d1, d2);
-        }).map(Optional::of).orElse(Optional.empty());
+        });
     }
 
-    private List<Position> extractPositions(ArrayList<String> messages) {
-        return messages.stream().map(msg -> {
+    private List<Position> getOpponentsPos() {
+        Predicate<String> isOpponentLocationMessage = msg -> msg.startsWith(Const.OPPONENT_POS_MSG_SIGN, 0);
+        List<String> opponentLocationMsgs = filterMessages(isOpponentLocationMessage);
+        return opponentLocationMsgs.stream().map(msg -> {
             String[] elements = parseOpponentsPosMessage(msg);
             double y = Double.valueOf(elements[1]);
             double x = Double.valueOf(elements[2]);
             return new Position(x, y);
-        }).collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+        }).toList();
     }
 
     private String[] parseOpponentsPosMessage(String msg) {
@@ -272,7 +355,6 @@ public class MainBotBrain extends MainBotBaseBrain {
 
     private void updateTeammatesPositions() {
         ArrayList<String> messages = filterMessages(
-                this.receivedMessages,
                 msg -> msg.startsWith(Const.TEAM_POS_MSG_SIGN, 0));
         messages.forEach(msg -> {
             RobotState state = RobotState.of(msg);
@@ -282,26 +364,16 @@ public class MainBotBrain extends MainBotBaseBrain {
 
     @Override
     protected void beforeEachStep() {
-        this.receivedMessages = fetchAllMessages();
-        detectOpponents();
+        super.beforeEachStep();
+        detectOpponent();
         updateTeammatesPositions();
         logRobotPosition();
-        super.beforeEachStep();
-    }
-
-    private void logTeammatesPositions() {
-        String logMessage = "";
-        for (Robots robot : teammatesPositions.keySet()) {
-            Position pos = teammatesPositions.get(robot).getPosition();
-            logMessage += robot.name() + " x: " + pos.getX() + " y: " + pos.getY() + "\n";
-        }
-        sendLogMessage(logMessage);
     }
 
     @Override
     protected void afterEachStep() {
         super.afterEachStep();
-        sendLogMessage(currentState.toString());
+        sendLogMessage(this.currentState.toString() + " " + this.targetDirection);
     }
 
     @Override
@@ -320,14 +392,13 @@ public class MainBotBrain extends MainBotBaseBrain {
             e.printStackTrace();
         }
     }
-
 }
 
 /**
  * DetectionResultCode
  */
 class DetectionResultCode {
-    public static final int NO_OPPONENT = 0;
+    public static final int ANY_OPPONENT = 0;
     public static final int OPPONENT_IN_LINE_OF_FIRE = 1;
     public static final int OPPONENT_OUT_OF_LINE_OF_FIRE = 2;
     public static final int TEAMMATES_IN_LINE_OF_FIRE = 3;

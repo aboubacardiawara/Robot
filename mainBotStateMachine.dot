@@ -1,11 +1,2 @@
 digraph G {
-turnLittleBitLeft -> moveEast [label="?"];
-moveEast -> fireState [label="?"];
-fireState -> stopFiring [label="?"];
-stopFiring -> fireState [label="?"];
-fireState -> findALineOfFirerotation_step_initialisation [label="?"];
-findALineOfFirerotation_step_initialisation -> findALineOfFire_45_rotation_step [label="?"];
-findALineOfFire_45_rotation_step -> findALineOfFireMoveState_initialisation [label="?"];
-findALineOfFireMoveState_initialisation -> findALineOfFire_move_step [label="?"];
-findALineOfFire_move_step -> fireState [label="?"];
-}
+SHOULD BE IMPLEMENTED !!!}
