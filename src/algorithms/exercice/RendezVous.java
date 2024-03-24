@@ -1,8 +1,8 @@
 package algorithms.exercice;
 
-import algorithms.aboubacarlyna.statemachine.impl.State;
-import algorithms.aboubacarlyna.statemachine.interfaces.IState;
 import algorithms.exercice.stage3.Stage3;
+import algorithms.hunters.statemachine.impl.State;
+import algorithms.hunters.statemachine.interfaces.IState;
 import characteristics.IRadarResult;
 import characteristics.Parameters;
 

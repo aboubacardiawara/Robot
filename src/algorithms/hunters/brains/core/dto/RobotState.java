@@ -1,6 +1,6 @@
-package algorithms.aboubacarlyna.brains.core.dto;
+package algorithms.hunters.brains.core.dto;
 
-import algorithms.aboubacarlyna.brains.core.BaseBrain.Robots;
+import algorithms.hunters.brains.core.BaseBrain.Robots;
 
 /** Holf informations about a robot (Main | Secondary)
  * RobotState

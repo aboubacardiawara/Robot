@@ -1,7 +1,7 @@
 package algorithms.exercice.stage1;
 
-import algorithms.aboubacarlyna.brains.core.BaseBrain;
-import algorithms.aboubacarlyna.statemachine.interfaces.IState;
+import algorithms.hunters.brains.core.BaseBrain;
+import algorithms.hunters.statemachine.interfaces.IState;
 import characteristics.Parameters;
 
 public class SquareWalkBrain extends BaseBrain {

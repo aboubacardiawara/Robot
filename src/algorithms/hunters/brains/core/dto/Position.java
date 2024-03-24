@@ -1,4 +1,4 @@
-package algorithms.aboubacarlyna.brains.core.dto;
+package algorithms.hunters.brains.core.dto;
 
 /**
  * Position
