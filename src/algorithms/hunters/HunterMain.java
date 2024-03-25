@@ -200,25 +200,6 @@ public class HunterMain extends MainBotBaseBrain {
             turnRight();
         });
 
-        // Deblocage quand je detect un autre robot devant moi.
-        // STMoveEast.addNext(DeblocState1, () -> opponentFrontOfMe() &&
-        // this.currentState != STStartFire);
-        // DeblocState1.addNext(DeblocState2, () -> move_back_count==0 );
-        // DeblocState1.setStateAction(() -> {
-        // moveBack();
-        // move_back_count--;
-        // });
-        // DeblocState2.addNext(DeblocState3, ()-> isSameDirection(getHeading(),
-        // Math.PI/2));
-        // DeblocState2.setStateAction(() -> {
-        // turnRight();
-        // move_back_count= 150;
-        // });
-        // DeblocState3.addNext(STMoveEast, () -> isSameDirection(getHeading(), 0));
-        // DeblocState3.setStateAction(() -> {
-        // move();
-        // });
-
         return initState;
     }
 
