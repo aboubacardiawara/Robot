@@ -27,7 +27,7 @@ public class Parameters {
         // ---TEAM-A-PARAMETERS---//
         // -----------------------//
         public static final String teamAName = "KD Runners";
-        public static final String teamAMainBotBrainClassName = "algorithms.CampFire"; // class given by name;
+        public static final String teamAMainBotBrainClassName = "algorithms.HighwayFugitive"; // class given by name;
                                                                                        // is
         // supposed to extends
         // robotsimulator.Brain
@@ -54,7 +54,7 @@ public class Parameters {
                         teamAMainBot3InitHeading = EAST; // clockwise trigonometric unit, according to screen pixel
                                                          // coordinate reference
 
-        public static final String teamASecondaryBotBrainClassName = "algorithms.CampFire"; // clas
+        public static final String teamASecondaryBotBrainClassName = "algorithms.HighwayFugitive"; // clas
                                                                                             // given by
                                                                                             // name; is
         // supposed to extends

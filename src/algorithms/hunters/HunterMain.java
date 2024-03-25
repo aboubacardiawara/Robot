@@ -83,7 +83,11 @@ public class HunterMain extends MainBotBaseBrain {
             if (this.currentRobot == Robots.MRUP) {
                 initStateAngleTarget = this.getHeading() + (Math.PI / 4);
             } else {
-                initStateAngleTarget = this.getHeading() - (Math.PI / 4);
+                if (this.currentRobot == Robots.MRBOTTOM) {
+                    initStateAngleTarget = this.getHeading() - (Math.PI / 4);
+                }else {
+                    initStateAngleTarget = Math.PI;
+                }
             }
         }
 
@@ -97,7 +101,7 @@ public class HunterMain extends MainBotBaseBrain {
                 }
             } else {
                 if (this.currentRobot == Robots.MRUP) {
-                    turnLeft();
+                    turnRight();
                 } else {
                     turnLeft();
                 }
@@ -148,7 +152,7 @@ public class HunterMain extends MainBotBaseBrain {
                 }
             }
             if (bullet_detected) {
-                // moveBack();
+                //moveBack();
                 bullet_detected = false;
             } else {
                 move();
@@ -171,7 +175,7 @@ public class HunterMain extends MainBotBaseBrain {
                 if (radar.getObjectType() == IRadarResult.Types.BULLET
                         && radar.getObjectType() == IRadarResult.Types.OpponentMainBot) {
                     bullet_detected = true;
-                    moveBack();
+                    //moveBack();
                 }
                 if (radar.getObjectType() == IRadarResult.Types.OpponentMainBot
                         || radar.getObjectType() == IRadarResult.Types.OpponentSecondaryBot) {

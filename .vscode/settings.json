@@ -4,5 +4,8 @@
     "jars\\simulator.jar",
     "jars/simulator.jar",
     "jars/fifth.jar"
-  ]
+  ],
+  "files.watcherExclude": {
+    "**/target": true
+  }
 }

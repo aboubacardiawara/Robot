@@ -41,7 +41,10 @@ public class HunterSecondary extends SecondaryBotBaseBrain {
     DeblocState.setDescription("Debloc State");
     IState STTurnEast = new State();
     STTurnEast.setDescription("Turn East");
-
+    IState STTurnNorth = new State();
+    STTurnNorth.setDescription("Turn North");
+    IState STTurnSouth = new State();
+    STTurnSouth.setDescription("Turn South");
     MoveStateTORedect.setDescription("Move State To Redect");
 
     double initStateAngleTarget;
@@ -131,7 +134,7 @@ public class HunterSecondary extends SecondaryBotBaseBrain {
       if (!detected) {
         move();
       }
-      System.out.println(bullet_detected + " "+ move_back_count );
+
       while (bullet_detected && move_back_count != 0) {
         System.out.println("move back");
         //moveBack();
@@ -142,18 +145,35 @@ public class HunterSecondary extends SecondaryBotBaseBrain {
     });
 
     //Detect wall faire le tour du terain et non pas des aller retour 
-    DetecState.addNext(STTurnWest, () -> detectWall() && isSameDirection(getHeading(), Parameters.EAST));
-    DetecState.addNext(STTurnWest, () -> detectWall() && isSameDirection(getHeading(), Parameters.NORTH));
+    if (this.leftSide){
+    DetecState.addNext(STTurnNorth, () -> detectWall() && isSameDirection(getHeading(), Parameters.EAST));
+    DetecState.addNext(STTurnNorth, () -> detectWall() && isSameDirection(getHeading(), Parameters.NORTH)&& currentRobot != Robots.SRUP);
+    DetecState.addNext(STTurnWest, () -> detectWall() && isSameDirection(getHeading(), Parameters.NORTH) && currentRobot == Robots.SRUP);
     DetecState.addNext(STTurnEast, () -> detectWall() && isSameDirection(getHeading(), Parameters.SOUTH));
     DetecState.addNext(STTurnEast, () -> detectWall() && isSameDirection(getHeading(), Parameters.WEST));
-    STTurnWest.addNext(DetecState, () -> isSameDirection(getHeading(), Parameters.NORTH));
+    STTurnNorth.addNext(DetecState, () -> isSameDirection(getHeading(), Parameters.NORTH));
+    STTurnNorth.setStateAction(() -> {turnLeft();});
+    STTurnWest.addNext(DetecState, () -> isSameDirection(getHeading(), Parameters.WEST));
+    STTurnWest.setStateAction(() -> {turnLeft();});
+    STTurnEast.addNext(DetecState, () -> isSameDirection(getHeading(), Parameters.EAST));
+    STTurnEast.setStateAction(() -> {turnRight();});
+  }else{
+    DetecState.addNext(STTurnNorth, () -> detectWall() && isSameDirection(getHeading(), Parameters.EAST));
+    DetecState.addNext(STTurnSouth, () -> detectWall() && isSameDirection(getHeading(), Parameters.SOUTH)&& currentRobot == Robots.SRUP);
+    DetecState.addNext(STTurnEast, () -> detectWall() && isSameDirection(getHeading(), Parameters.SOUTH) && currentRobot != Robots.SRUP);
+    DetecState.addNext(STTurnEast, () -> detectWall() && isSameDirection(getHeading(), Parameters.SOUTH));
+    DetecState.addNext(STTurnSouth, () -> detectWall() && isSameDirection(getHeading(), Parameters.WEST));
+    STTurnSouth.addNext(DetecState, () -> isSameDirection(getHeading(), Parameters.SOUTH));
+    STTurnSouth.setStateAction(() -> { turnLeft();  });
+    STTurnWest.addNext(DetecState, () -> isSameDirection(getHeading(), Parameters.WEST));
     STTurnWest.setStateAction(() -> {
-      turnRight();
+      turnLeft();
     });
     STTurnEast.addNext(DetecState, () -> isSameDirection(getHeading(), Parameters.EAST));
     STTurnEast.setStateAction(() -> {
       turnRight();
     });
+  }
 
     return initState;
   }
