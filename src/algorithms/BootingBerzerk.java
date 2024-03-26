@@ -70,35 +70,35 @@ public class BootingBerzerk extends Brain {
             stepTurn(Parameters.Direction.LEFT);
         }
         return;
-      }//______________________________________________________
-      
-        if (endTaskCounter<0) {
-        turnTask=true;
-        moveTask=false;
-        berzerk=false;
-        endTaskDirection=(Math.random()-0.5)*2*Math.PI;
-        turnRight=(endTaskDirection>0);
-        endTaskDirection+=getHeading();
-        if (turnRight) stepTurn(Parameters.Direction.RIGHT);
-        else stepTurn(Parameters.Direction.LEFT);
-        sendLogMessage("Turning point. Waza!");
-        } else {
-        endTaskCounter--;
-        if (Math.random()<0.1) {
-        for (IRadarResult r : radarResults) {
-        if (r.getObjectType()==IRadarResult.Types.OpponentMainBot) {
-        fire(r.getObjectDirection());
-        lastSeenDirection=r.getObjectDirection();
-        return;
-        }
-        }
-        fire(lastSeenDirection);
-        return;
-        } else {
-        if (back) moveBack(); else move();
-        }
-        }
-       ///----------------------------------------------------------------
+      }
+      /*
+       * if (endTaskCounter<0) {
+       * turnTask=true;
+       * moveTask=false;
+       * berzerk=false;
+       * endTaskDirection=(Math.random()-0.5)*2*Math.PI;
+       * turnRight=(endTaskDirection>0);
+       * endTaskDirection+=getHeading();
+       * if (turnRight) stepTurn(Parameters.Direction.RIGHT);
+       * else stepTurn(Parameters.Direction.LEFT);
+       * sendLogMessage("Turning point. Waza!");
+       * } else {
+       * endTaskCounter--;
+       * if (Math.random()<0.1) {
+       * for (IRadarResult r : radarResults) {
+       * if (r.getObjectType()==IRadarResult.Types.OpponentMainBot) {
+       * fire(r.getObjectDirection());
+       * lastSeenDirection=r.getObjectDirection();
+       * return;
+       * }
+       * }
+       * fire(lastSeenDirection);
+       * return;
+       * } else {
+       * if (back) moveBack(); else move();
+       * }
+       * }
+       */
       if (berzerkInerty > 50) {
         turnTask = true;
         moveTask = false;
@@ -189,20 +189,19 @@ public class BootingBerzerk extends Brain {
       }
       return;
     }
-    //________________________________________________________________
-     if (moveTask) {
-      
-        if (detectFront().getObjectType() != IFrontSensorResult.Types.NOTHING) {
-        turnTask=true;
-        moveTask=false;
-        endTaskDirection=(Math.random()-0.5)*Math.PI;
-        turnRight=(endTaskDirection>0);
-        endTaskDirection+=getHeading();
-        if (turnRight) stepTurn(Parameters.Direction.RIGHT);
-        else stepTurn(Parameters.Direction.LEFT);
-        sendLogMessage("Turning point. Waza!");
-        }
-       
+    if (moveTask) {
+      /*
+       * if (detectFront()!=NOTHING) {
+       * turnTask=true;
+       * moveTask=false;
+       * endTaskDirection=(Math.random()-0.5)*Math.PI;
+       * turnRight=(endTaskDirection>0);
+       * endTaskDirection+=getHeading();
+       * if (turnRight) stepTurn(Parameters.Direction.RIGHT);
+       * else stepTurn(Parameters.Direction.LEFT);
+       * sendLogMessage("Turning point. Waza!");
+       * }
+       */
       if (endTaskCounter < 0) {
         turnTask = true;
         moveTask = false;

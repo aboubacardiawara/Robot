@@ -129,18 +129,18 @@ public class HighwayFugitive extends Brain {
       return;
     }
     if (moveTask) {
-      //__________________________________________________________________
-       if (detectFront().getObjectType()!= IFrontSensorResult.Types.NOTHING) {
-        turnTask=true;
-        moveTask=false;
-        endTaskDirection=(Math.random()-0.5)*Math.PI;
-        turnRight=(endTaskDirection>0);
-        endTaskDirection+=getHeading();
-       if (turnRight) stepTurn(Parameters.Direction.RIGHT);
-        else stepTurn(Parameters.Direction.LEFT);
-       sendLogMessage("Turning point. Waza!");
-       }
-       
+      /*
+       * if (detectFront()!=NOTHING) {
+       * turnTask=true;
+       * moveTask=false;
+       * endTaskDirection=(Math.random()-0.5)*Math.PI;
+       * turnRight=(endTaskDirection>0);
+       * endTaskDirection+=getHeading();
+       * if (turnRight) stepTurn(Parameters.Direction.RIGHT);
+       * else stepTurn(Parameters.Direction.LEFT);
+       * sendLogMessage("Turning point. Waza!");
+       * }
+       */
       if (endTaskCounter < 0) {
         turnTask = true;
         moveTask = false;
