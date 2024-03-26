@@ -1,3 +1,21 @@
+file://<WORKSPACE>/src/characteristics/Parameters.java
+### java.util.NoSuchElementException: next on empty iterator
+
+occurred in the presentation compiler.
+
+presentation compiler configuration:
+Scala version: 3.3.1
+Classpath:
+<HOME>/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala3-library_3/3.3.1/scala3-library_3-3.3.1.jar [exists ], <HOME>/Library/Caches/Coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.13.10/scala-library-2.13.10.jar [exists ]
+Options:
+
+
+
+action parameters:
+offset: 6481
+uri: file://<WORKSPACE>/src/characteristics/Parameters.java
+text:
+```scala
 
 /* ******************************************************
  * Simovies - Eurobot 2015 Robomovies Simulator.
@@ -86,7 +104,7 @@ public class Parameters {
                                                                                                  // is
         // supposed to extends
         // robotsimulator.Brain
-        public static final String teamBMainBotAvatar = "avatars/hollowee.png"; // path relative to location of ant
+        public @@static final String teamBMainBotAvatar = "avatars/hollowee.png"; // path relative to location of ant
                                                                                 // build.xml file
         public static final double teamBMainBotRadius = 50, // 1 unit = 1mm, body radius
                         teamBMainBotFrontalDetectionRange = 300, // 1 unit = 1mm, range of frontal sensor
@@ -142,3 +160,24 @@ public class Parameters {
                         bulletRange = 1000;
         public static final int bulletFiringLatency = 20;
 }
+```
+
+
+
+#### Error stacktrace:
+
+```
+scala.collection.Iterator$$anon$19.next(Iterator.scala:973)
+	scala.collection.Iterator$$anon$19.next(Iterator.scala:971)
+	scala.collection.mutable.MutationTracker$CheckedIterator.next(MutationTracker.scala:76)
+	scala.collection.IterableOps.head(Iterable.scala:222)
+	scala.collection.IterableOps.head$(Iterable.scala:222)
+	scala.collection.AbstractIterable.head(Iterable.scala:933)
+	dotty.tools.dotc.interactive.InteractiveDriver.run(InteractiveDriver.scala:168)
+	scala.meta.internal.pc.MetalsDriver.run(MetalsDriver.scala:45)
+	scala.meta.internal.pc.HoverProvider$.hover(HoverProvider.scala:34)
+	scala.meta.internal.pc.ScalaPresentationCompiler.hover$$anonfun$1(ScalaPresentationCompiler.scala:352)
+```
+#### Short summary: 
+
+java.util.NoSuchElementException: next on empty iterator
