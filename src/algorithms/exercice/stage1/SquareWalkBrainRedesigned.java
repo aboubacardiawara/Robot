@@ -1,9 +1,9 @@
 package algorithms.exercice.stage1;
 
-import algorithms.aboubacarlyna.brains.core.BaseBrain;
-import algorithms.aboubacarlyna.statemachine.AnyTransitionConditionMetException;
-import algorithms.aboubacarlyna.statemachine.impl.State;
-import algorithms.aboubacarlyna.statemachine.interfaces.IState;
+import algorithms.hunters.brains.core.BaseBrain;
+import algorithms.hunters.statemachine.AnyTransitionConditionMetException;
+import algorithms.hunters.statemachine.impl.State;
+import algorithms.hunters.statemachine.interfaces.IState;
 import characteristics.Parameters;
 
 public class SquareWalkBrainRedesigned extends BaseBrain {

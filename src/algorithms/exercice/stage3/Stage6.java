@@ -1,8 +1,8 @@
 package algorithms.exercice.stage3;
 
-import algorithms.aboubacarlyna.brains.core.BaseBrain;
-import algorithms.aboubacarlyna.statemachine.impl.State;
-import algorithms.aboubacarlyna.statemachine.interfaces.IState;
+import algorithms.hunters.brains.core.BaseBrain;
+import algorithms.hunters.statemachine.impl.State;
+import algorithms.hunters.statemachine.interfaces.IState;
 import characteristics.Parameters;
 
 
