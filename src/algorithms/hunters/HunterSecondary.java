@@ -59,7 +59,7 @@ public class HunterSecondary extends SecondaryBotBaseBrain {
       if (this.currentRobot == Robots.SRUP) {
         initStateAngleTarget = this.getHeading() + (Math.PI / 3);
       } else {
-        initStateAngleTarget = this.getHeading() - (Math.PI /3);
+        initStateAngleTarget = this.getHeading() - (Math.PI / 3);
       }
     }
 
@@ -127,8 +127,8 @@ public class HunterSecondary extends SecondaryBotBaseBrain {
           nombre_robot_vivivant++;
         }
 
-        if (radarResult.getObjectType() == IRadarResult.Types.BULLET){
-         //bullet_detected = true;
+        if (radarResult.getObjectType() == IRadarResult.Types.BULLET) {
+          // bullet_detected = true;
         }
       }
       if (!detected) {
@@ -137,48 +137,62 @@ public class HunterSecondary extends SecondaryBotBaseBrain {
 
       while (bullet_detected && move_back_count != 0) {
         System.out.println("move back");
-        //moveBack();
+        // moveBack();
         move_back_count--;
       }
       move_back_count = 100;
       bullet_detected = false;
     });
 
-    //Detect wall faire le tour du terain et non pas des aller retour 
-    if (this.leftSide){
-    DetecState.addNext(STTurnNorth, () -> detectWall() && isSameDirection(getHeading(), Parameters.EAST));
-    DetecState.addNext(STTurnNorth, () -> detectWall() && isSameDirection(getHeading(), Parameters.NORTH)&& currentRobot != Robots.SRUP);
-    DetecState.addNext(STTurnWest, () -> detectWall() && isSameDirection(getHeading(), Parameters.NORTH) && currentRobot == Robots.SRUP);
-    DetecState.addNext(STTurnEast, () -> detectWall() && isSameDirection(getHeading(), Parameters.SOUTH));
-    DetecState.addNext(STTurnEast, () -> detectWall() && isSameDirection(getHeading(), Parameters.WEST));
-    STTurnNorth.addNext(DetecState, () -> isSameDirection(getHeading(), Parameters.NORTH));
-    STTurnNorth.setStateAction(() -> {turnLeft();});
-    STTurnWest.addNext(DetecState, () -> isSameDirection(getHeading(), Parameters.WEST));
-    STTurnWest.setStateAction(() -> {turnLeft();});
-    STTurnEast.addNext(DetecState, () -> isSameDirection(getHeading(), Parameters.EAST));
-    STTurnEast.setStateAction(() -> {turnRight();});
-  }else{
-    DetecState.addNext(STTurnNorth, () -> detectWall() && isSameDirection(getHeading(), Parameters.EAST));
-    DetecState.addNext(STTurnSouth, () -> detectWall() && isSameDirection(getHeading(), Parameters.SOUTH)&& currentRobot == Robots.SRUP);
-    DetecState.addNext(STTurnEast, () -> detectWall() && isSameDirection(getHeading(), Parameters.SOUTH) && currentRobot != Robots.SRUP);
-    DetecState.addNext(STTurnEast, () -> detectWall() && isSameDirection(getHeading(), Parameters.SOUTH));
-    DetecState.addNext(STTurnSouth, () -> detectWall() && isSameDirection(getHeading(), Parameters.WEST));
-    STTurnSouth.addNext(DetecState, () -> isSameDirection(getHeading(), Parameters.SOUTH));
-    STTurnSouth.setStateAction(() -> { turnLeft();  });
-    STTurnWest.addNext(DetecState, () -> isSameDirection(getHeading(), Parameters.WEST));
-    STTurnWest.setStateAction(() -> {
-      turnLeft();
-    });
-    STTurnEast.addNext(DetecState, () -> isSameDirection(getHeading(), Parameters.EAST));
-    STTurnEast.setStateAction(() -> {
-      turnRight();
-    });
-  }
+    // Detect wall faire le tour du terain et non pas des aller retour
+    if (this.leftSide) {
+      DetecState.addNext(STTurnNorth, () -> detectWall() && isSameDirection(getHeading(), Parameters.EAST));
+      DetecState.addNext(STTurnNorth,
+          () -> detectWall() && isSameDirection(getHeading(), Parameters.NORTH) && currentRobot != Robots.SRUP);
+      DetecState.addNext(STTurnWest,
+          () -> detectWall() && isSameDirection(getHeading(), Parameters.NORTH) && currentRobot == Robots.SRUP);
+      DetecState.addNext(STTurnEast, () -> detectWall() && isSameDirection(getHeading(), Parameters.SOUTH));
+      DetecState.addNext(STTurnEast, () -> detectWall() && isSameDirection(getHeading(), Parameters.WEST));
+      STTurnNorth.addNext(DetecState, () -> isSameDirection(getHeading(), Parameters.NORTH));
+      STTurnNorth.setStateAction(() -> {
+        turnLeft();
+      });
+      STTurnWest.addNext(DetecState, () -> isSameDirection(getHeading(), Parameters.WEST));
+      STTurnWest.setStateAction(() -> {
+        turnLeft();
+      });
+      STTurnEast.addNext(DetecState, () -> isSameDirection(getHeading(), Parameters.EAST));
+      STTurnEast.setStateAction(() -> {
+        turnRight();
+      });
+    } else {
+      DetecState.addNext(STTurnNorth, () -> detectWall() && isSameDirection(getHeading(), Parameters.EAST));
+      DetecState.addNext(STTurnSouth,
+          () -> detectWall() && isSameDirection(getHeading(), Parameters.SOUTH) && currentRobot == Robots.SRUP);
+      DetecState.addNext(STTurnEast,
+          () -> detectWall() && isSameDirection(getHeading(), Parameters.SOUTH) && currentRobot != Robots.SRUP);
+      DetecState.addNext(STTurnEast, () -> detectWall() && isSameDirection(getHeading(), Parameters.SOUTH));
+      DetecState.addNext(STTurnSouth, () -> detectWall() && isSameDirection(getHeading(), Parameters.WEST));
+      STTurnSouth.addNext(DetecState, () -> isSameDirection(getHeading(), Parameters.SOUTH));
+      STTurnSouth.setStateAction(() -> {
+        turnLeft();
+      });
+      STTurnWest.addNext(DetecState, () -> isSameDirection(getHeading(), Parameters.WEST));
+      STTurnWest.setStateAction(() -> {
+        turnLeft();
+      });
+      STTurnEast.addNext(DetecState, () -> isSameDirection(getHeading(), Parameters.EAST));
+      STTurnEast.setStateAction(() -> {
+        turnRight();
+      });
+    }
 
     return initState;
   }
 
   private String buildOpponentPosMessage(IRadarResult radarResult, double opponentPosX, double opponentPosY) {
+
+    String opponentType = radarResult.getObjectType() == IRadarResult.Types.OpponentMainBot ? "main" : "secondary";
     return Const.OPPONENT_POS_MSG_SIGN
         + Const.MSG_SEPARATOR
         + opponentPosY
@@ -187,7 +201,7 @@ public class HunterSecondary extends SecondaryBotBaseBrain {
         + Const.MSG_SEPARATOR
         + getHealth()
         + Const.MSG_SEPARATOR
-        + "secondary";
+        + opponentType;
   }
 
   @Override

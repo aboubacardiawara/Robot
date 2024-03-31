@@ -28,7 +28,7 @@ public class Parameters {
         // -----------------------//
         public static final String teamAName = "KD Runners";
         public static final String teamAMainBotBrainClassName = "algorithms.hunters.HunterMain"; // class given by name;
-                                                                                       // is
+        // is
         // supposed to extends
         // robotsimulator.Brain
         public static final String teamAMainBotAvatar = "avatars/cyclope.png"; // path relative to location of ant
@@ -55,8 +55,8 @@ public class Parameters {
                                                          // coordinate reference
 
         public static final String teamASecondaryBotBrainClassName = "algorithms.hunters.HunterSecondary"; // clas
-                                                                                            // given by
-                                                                                            // name; is
+        // given by
+        // name; is
         // supposed to extends
         // robotsimulator.Brain
         public static final String teamASecondaryBotAvatar = "avatars/clumpsy.png"; // path relative to location of ant
@@ -82,8 +82,8 @@ public class Parameters {
         // ---TEAM-B-PARAMETERS---//
         // -----------------------//
         public static final String teamBName = "Fantom Danger";
-        public static final String teamBMainBotBrainClassName = "algorithms.FifthElementMain"; // class given by name;
-                                                                                                 // is
+        public static final String teamBMainBotBrainClassName = "algorithms.HighwayFugitive"; // class given by name;
+                                                                                              // is
         // supposed to extends
         // robotsimulator.Brain
         public static final String teamBMainBotAvatar = "avatars/hollowee.png"; // path relative to location of ant
@@ -109,9 +109,9 @@ public class Parameters {
                         teamBMainBot3InitHeading = WEST; // clockwise trigonometric unit, according to screen pixel
                                                          // coordinate reference
 
-        public static final String teamBSecondaryBotBrainClassName = "algorithms.FifthElementSecondary"; // class
-                                                                                                           // given by
-                                                                                                           // name; is
+        public static final String teamBSecondaryBotBrainClassName = "algorithms.HighwayFugitive"; // class
+                                                                                                   // given by
+                                                                                                   // name; is
         // supposed to extends
         // robotsimulator.Brain
         public static final String teamBSecondaryBotAvatar = "avatars/fannyExplorer.png"; // path relative to location

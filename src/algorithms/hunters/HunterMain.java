@@ -85,7 +85,7 @@ public class HunterMain extends MainBotBaseBrain {
             } else {
                 if (this.currentRobot == Robots.MRBOTTOM) {
                     initStateAngleTarget = this.getHeading() - (Math.PI / 4);
-                }else {
+                } else {
                     initStateAngleTarget = Math.PI;
                 }
             }
@@ -152,7 +152,7 @@ public class HunterMain extends MainBotBaseBrain {
                 }
             }
             if (bullet_detected) {
-                //moveBack();
+                // moveBack();
                 bullet_detected = false;
             } else {
                 move();
@@ -175,7 +175,7 @@ public class HunterMain extends MainBotBaseBrain {
                 if (radar.getObjectType() == IRadarResult.Types.BULLET
                         && radar.getObjectType() == IRadarResult.Types.OpponentMainBot) {
                     bullet_detected = true;
-                    //moveBack();
+                    // moveBack();
                 }
                 if (radar.getObjectType() == IRadarResult.Types.OpponentMainBot
                         || radar.getObjectType() == IRadarResult.Types.OpponentSecondaryBot) {
@@ -288,6 +288,13 @@ public class HunterMain extends MainBotBaseBrain {
         return this.receivedMessages.stream().filter(f).collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
     }
 
+    private List<Position> positionsOfOpponents(Map<String, List<Position>> opponents) {
+        List<Position> positions = new ArrayList<>();
+        positions.addAll(opponents.get("main"));
+        positions.addAll(opponents.get("secondary"));
+        return positions;
+    }
+
     /**
      * Check if there is any opponent in the radar
      * 
@@ -299,8 +306,9 @@ public class HunterMain extends MainBotBaseBrain {
      *         being in line of fire.s
      */
     private int detectOpponent() {
-        List<Position> positions = getOpponentsPos();
-        Optional<Position> optionalPosition = candidatEnemyToShot(positions);
+        Map<String, List<Position>> opponents = getOpponentsPosEnhanced();
+        List<Position> positions = positionsOfOpponents(opponents);
+        Optional<Position> optionalPosition = candidatEnemyToShot(opponents);
 
         if (optionalPosition.isPresent()) {
             Position closestPos = optionalPosition.get();
@@ -324,8 +332,9 @@ public class HunterMain extends MainBotBaseBrain {
     }
 
     private boolean detectOpponentBis() {
-        List<Position> positions = getOpponentsPos();
-        Optional<Position> optionalPosition = candidatEnemyToShot(positions);
+        Map<String, List<Position>> opponents = getOpponentsPosEnhanced();
+        List<Position> positions = positionsOfOpponents(opponents);
+        Optional<Position> optionalPosition = candidatEnemyToShot(opponents);
         if (optionalPosition.isPresent()) {
             Position closestPos = optionalPosition.get();
             double distance = closestPos.distanceTo(Position.of(robotX, robotY));
@@ -341,27 +350,49 @@ public class HunterMain extends MainBotBaseBrain {
 
     /**
      * Pick a candidate to shot among the list of positions.
+     * main has the priority over secondary.
+     * whatever the category, the closest is the best.
      * 
      * @param filteredPoints
      * @return
      */
-    private Optional<Position> candidatEnemyToShot(List<Position> points) {
-        return points.stream().min((p1, p2) -> {
-            double d1 = p1.distanceTo(Position.of(robotX, robotY));
-            double d2 = p2.distanceTo(Position.of(robotX, robotY));
-            return Double.compare(d1, d2);
-        });
+    private Optional<Position> candidatEnemyToShot(Map<String, List<Position>> opponents) {
+        List<Position> mainPositions = opponents.get("main");
+        List<Position> secondaryPositions = opponents.get("secondary");
+        if (mainPositions.size() > 0) {
+            return mainPositions.stream().min((p1, p2) -> {
+                double d1 = p1.distanceTo(Position.of(robotX, robotY));
+                double d2 = p2.distanceTo(Position.of(robotX, robotY));
+                return Double.compare(d1, d2);
+            });
+        } else if (secondaryPositions.size() > 0) {
+            return secondaryPositions.stream().min((p1, p2) -> {
+                double d1 = p1.distanceTo(Position.of(robotX, robotY));
+                double d2 = p2.distanceTo(Position.of(robotX, robotY));
+                return Double.compare(d1, d2);
+            });
+        } else {
+            return Optional.empty();
+        }
     }
 
-    private List<Position> getOpponentsPos() {
+    private Map<String, List<Position>> getOpponentsPosEnhanced() {
         Predicate<String> isOpponentLocationMessage = msg -> msg.startsWith(Const.OPPONENT_POS_MSG_SIGN, 0);
         List<String> opponentLocationMsgs = filterMessages(isOpponentLocationMessage);
-        return opponentLocationMsgs.stream().map(msg -> {
+        // init with main -> [], and secodary -> []
+        Map<String, List<Position>> opponents = new HashMap<>();
+        opponents.put("main", new ArrayList<>());
+        opponents.put("secondary", new ArrayList<>());
+        // group by "secondary" and "main"
+        opponentLocationMsgs.forEach(msg -> {
             String[] elements = parseOpponentsPosMessage(msg);
             double y = Double.valueOf(elements[1]);
             double x = Double.valueOf(elements[2]);
-            return new Position(x, y);
-        }).toList();
+            String type = elements[4];
+            opponents.get(type).add(new Position(x, y));
+        });
+
+        return opponents;
     }
 
     private String[] parseOpponentsPosMessage(String msg) {
