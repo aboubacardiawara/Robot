@@ -185,6 +185,8 @@ public class HunterSecondary extends SecondaryBotBaseBrain {
       STTurnEast.setStateAction(() -> {
         turnRight();
       });
+      STTurnNorth.addNext(DetecState, () -> isSameDirection(getHeading(), Parameters.WEST));
+      STTurnNorth.setStateAction(() -> {  turnRight(); });
     }
 
     return initState;

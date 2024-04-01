@@ -27,7 +27,7 @@ public class Parameters {
         // ---TEAM-A-PARAMETERS---//
         // -----------------------//
         public static final String teamAName = "KD Runners";
-        public static final String teamAMainBotBrainClassName = "algorithms.hunters.HunterMain"; // class given by name;
+        public static final String teamAMainBotBrainClassName = "algorithms.RandomFire"; // class given by name;
         // is
         // supposed to extends
         // robotsimulator.Brain
@@ -54,7 +54,7 @@ public class Parameters {
                         teamAMainBot3InitHeading = EAST; // clockwise trigonometric unit, according to screen pixel
                                                          // coordinate reference
 
-        public static final String teamASecondaryBotBrainClassName = "algorithms.hunters.HunterSecondary"; // clas
+        public static final String teamASecondaryBotBrainClassName = "algorithms.RandomFire"; // clas
         // given by
         // name; is
         // supposed to extends
@@ -82,7 +82,7 @@ public class Parameters {
         // ---TEAM-B-PARAMETERS---//
         // -----------------------//
         public static final String teamBName = "Fantom Danger";
-        public static final String teamBMainBotBrainClassName = "algorithms.HighwayFugitive"; // class given by name;
+        public static final String teamBMainBotBrainClassName = "algorithms.hunters.HunterMain"; // class given by name;
                                                                                               // is
         // supposed to extends
         // robotsimulator.Brain
@@ -109,7 +109,7 @@ public class Parameters {
                         teamBMainBot3InitHeading = WEST; // clockwise trigonometric unit, according to screen pixel
                                                          // coordinate reference
 
-        public static final String teamBSecondaryBotBrainClassName = "algorithms.HighwayFugitive"; // class
+        public static final String teamBSecondaryBotBrainClassName = "algorithms.hunters.HunterSecondary"; // class
                                                                                                    // given by
                                                                                                    // name; is
         // supposed to extends
